@@ -14,7 +14,7 @@ target/
 .sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
@@ -26,8 +26,15 @@ target/
 /nbdist/
 /.nb-gradle/
 build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
+web/node
+web/node_modules
 ### VS Code ###
 .vscode/
+*.log
+.output.txt
+/src/main/resources/static/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
