@@ -11,8 +11,8 @@ A modern full-stack dashboard application built with Spring Boot (Java) and Reac
 ## Prerequisites
 
 - **Java 21**
-- **Node.js** (v20+ recommended)
-- **pnpm** (preferred for frontend)
+- **Node.js** (v22.22.1+ recommended)
+- **pnpm** (v10.32.1+ preferred for frontend)
 
 ## Getting Started
 
@@ -48,9 +48,11 @@ From the root directory, run:
 
 This command will:
 1.  Install Node.js and pnpm (via `frontend-maven-plugin`).
-2.  Install frontend dependencies and build the React application.
-3.  Copy the frontend build output to `src/main/resources/static`.
-4.  Build the Spring Boot JAR file.
+2.  Install frontend dependencies.
+3.  Run frontend linting (`pnpm lint`).
+4.  Build the React application.
+5.  Copy the frontend build output to `src/main/resources/static`.
+6.  Build the Spring Boot JAR file.
 
 #### Running the Production Build
 After building, you can run the application using:
@@ -64,7 +66,12 @@ The unified application will be available at [http://localhost:8080](http://loca
 When the backend is running, you can access the Swagger UI for API documentation at:
 [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 
+## Frontend Learning Resources
+
+If you are a Java developer new to the frontend stack, check out:
+- `web/TUTORIAL.md`: A comprehensive guide to React, TypeScript, and Tailwind CSS from a Java perspective.
+
 ## Technologies Used
 
 - **Backend:** Spring Boot, Spring Data JPA, H2 (In-memory database), SpringDoc OpenAPI.
-- **Frontend:** React, TypeScript, Vite, Tailwind CSS, shadcn/ui, Recharts, Lucide React.
+- **Frontend:** React 19, TypeScript, Vite 8, Tailwind CSS v4, shadcn/ui, Recharts, Lucide React.

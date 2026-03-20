@@ -7,6 +7,25 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * [BACKEND CONTROLLER] DashboardController
+ * 
+ * This Spring Boot RestController provides the data for the React frontend.
+ * 
+ * For Frontend Developers:
+ * - Each `@GetMapping` maps to a `fetch("/api/...")` call in `web/src/App.tsx`.
+ * - The return types (Java Records) are automatically serialized to JSON by Spring (Jackson).
+ * 
+ * 🚫 Antipattern: Breaking the Contract
+ *    Changing a field name here (e.g., `totalRevenue` -> `revenue`) without 
+ *    updating the frontend `type` definitions will cause the UI to break 
+ *    silently, showing `undefined` or `NaN`.
+ * 
+ * For Java Developers:
+ * - This is a standard REST controller using modern Java Features like `record`.
+ * - In this project, data is hardcoded for demonstration purposes, but it 
+ *   would typically come from a Database via JPA or JDBC.
+ */
 @RestController
 @RequestMapping("/api")
 public class DashboardController {
@@ -63,6 +82,15 @@ public class DashboardController {
         );
     }
 
+    /**
+     * [DTO] Data Transfer Objects
+     * 
+     * These Java records define the "Contract" between the Backend and Frontend.
+     * 
+     * React Analogy:
+     * - These match the `type` definitions at the top of `web/src/App.tsx`.
+     * - `SeriesPoint` matches `type SeriesPoint = { label: string; value: number }`
+     */
     public record SeriesPoint(String label, double value) {}
     public record RecentSale(String name, String email, double amount, String initials) {}
     public record MonthlyRevenueData(
