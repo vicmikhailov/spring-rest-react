@@ -1,9 +1,10 @@
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
+import tailwindcss from "@tailwindcss/vite"
 import { fileURLToPath, URL } from "node:url"
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [tailwindcss(), react()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
@@ -20,6 +21,7 @@ export default defineConfig({
   build: {
     outDir: "../src/main/resources/static",
     emptyOutDir: true,
+    target: "esnext",
     rollupOptions: {
       output: {
         manualChunks: (id) => {
@@ -33,8 +35,8 @@ export default defineConfig({
             if (id.includes("lucide-react")) {
               return "lucide"
             }
-            if (id.includes("@radix-ui")) {
-              return "radix"
+            if (id.includes("@radix-ui") || id.includes("@base-ui")) {
+              return "ui"
             }
             return "vendor"
           }
