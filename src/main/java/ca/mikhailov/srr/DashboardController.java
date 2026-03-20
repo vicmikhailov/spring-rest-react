@@ -25,6 +25,10 @@ import java.util.List;
  * - This is a standard REST controller using modern Java Features like `record`.
  * - In this project, data is hardcoded for demonstration purposes, but it 
  *   would typically come from a Database via JPA or JDBC.
+ *
+ * Interview note:
+ * - API evolution should be contract-first. If you rename/remove fields here,
+ *   add/update endpoint tests (MockMvc) so frontend regressions are caught early.
  */
 @RestController
 @RequestMapping("/api")

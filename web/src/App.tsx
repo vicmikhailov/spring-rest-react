@@ -159,6 +159,10 @@ export default function App() {
      * A: 'fetch' returns a generic JSON object. TypeScript doesn't know the 
      *    shape of your API response. This cast is like telling the compiler: 
      *    "Trust me, I know the Java backend returns this specific Record/DTO."
+     *
+     * Interview nuance:
+     * - `as` is compile-time only; it does NOT validate runtime JSON.
+     * - In production-grade apps, add schema validation for external data.
      */
     Promise.all([
       fetch("/api/total-revenue").then((r) => r.json() as Promise<number>),
@@ -271,8 +275,8 @@ export default function App() {
             <StatCard
               title="Total Revenue"
               icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
-              // `||` provides a fallback for the initial 0 so the UI shows seeded sample data
-              // before real data arrives. Comparable to `Optional.orElse` in Java.
+              // `||` intentionally keeps the seeded demo value visible while real data loads.
+              // Interview note: `??` is safer when 0 must be preserved as a valid value.
               value={formatCurrency(totalRevenue || 45231.89)}
               description="+20.1% from last month"
             />
