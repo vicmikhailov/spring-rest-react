@@ -10,12 +10,12 @@ Use this section right before an interview.
 
 ### One-liners interviewers love
 
-- **TypeScript**: "TypeScript gives Java-like compile-time safety in the browser, but with structural typing instead of nominal typing."
-- **React**: "React treats UI as a pure function of state; when state changes, React re-renders and reconciles minimal DOM updates."
-- **Hooks**: "`useState` is component-local state; `useEffect` is side-effect orchestration tied to lifecycle-like dependency changes."
-- **Tailwind**: "Tailwind is utility-first CSS: design-system primitives as classes, reducing custom CSS drift and naming overhead."
-- **shadcn/ui**: "It is not a black-box package; components are project-owned source code, so customization is straightforward."
-- **Vite**: "Fast dev server + production bundler; in this repo it proxies `/api` in dev and outputs assets for Spring static serving in prod."
+- **TypeScript**: "TypeScript gives Java-like compile-time safety in the browser. It uses **structural typing** (based on shape) whereas Java uses **nominal typing** (based on class identity)."
+- **React**: "React treats UI as a pure function of state. When state changes, React re-renders and calculates minimal DOM updates to sync the UI."
+- **Hooks**: "`useState` is local state; `useEffect` is for side effects (like data fetching) that run after the UI is rendered."
+- **Tailwind**: "Tailwind is utility-first CSS: instead of writing custom CSS files, you use predefined classes to build designs directly in your HTML/JSX."
+- **shadcn/ui**: "It’s not a black-box component library; the component code lives in your project, giving you full control over customization."
+- **Vite**: "Fast dev server + production bundler. It handles the 'hot reload' during development and optimizes the final build for the browser."
 
 ### Java -> Frontend translation cheat card
 
@@ -35,9 +35,8 @@ Use this section right before an interview.
 - For production, Maven runs frontend build and copies assets into `src/main/resources/static`.
 
 Interview framing:
-
-- "This is a simple BFF-style setup where frontend and backend share one deployment artifact in production."
-- "Contracts are implicit via JSON shape, so TypeScript types and Java records must stay aligned."
+- "This is a simple setup where the frontend and backend are bundled together into one deployment artifact (the .jar file)."
+- "The contract between frontend and backend is implicit (JSON shape). This means we must keep the Java Records and TypeScript Types in sync manually."
 
 ---
 
@@ -45,58 +44,112 @@ Interview framing:
 
 ### 3.1 Structural typing vs nominal typing
 
-In Java, types are nominal: class identity matters.
-In TypeScript, types are structural: shape matters.
+In Java, types are **nominal**: class identity matters. Even if two classes have identical fields, they are not compatible unless one extends the other.
 
+In TypeScript, types are **structural**: shape matters. If it looks like a duck and quacks like a duck, it's a duck.
+
+#### Java Example (Nominal)
+```java
+class Person { public String email; }
+class User { public String email; }
+
+// Compilation Error! Even if fields match, types are different.
+Person p = new User(); 
+```
+
+#### TypeScript Example (Structural)
 ```ts
 interface HasEmail { email: string }
 const x = { email: "a@b.com", extra: 1 }
-const y: HasEmail = x // valid because shape matches
+
+// Valid because x has an 'email' property of type 'string'
+const y: HasEmail = x 
 ```
 
 Interview answer:
 
-- "TypeScript optimizes for JS interoperability. Structural typing improves flexibility but requires discipline around API boundaries."
+- "TypeScript optimizes for JS interoperability. Structural typing improves flexibility (e.g., passing raw objects from JSON directly to typed functions) but requires discipline around API boundaries."
 
 ### 3.2 `unknown` vs `any`
 
-- `any`: disables type safety (like telling compiler to stop checking).
-- `unknown`: safe top type; must narrow before use.
+- `any`: disables type safety (like telling compiler to stop checking). It's essentially "the Wild West"—avoid this in production.
+- `unknown`: safe top type. Like `Object` in Java, but you cannot use it without casting or narrowing first.
 
+#### Java Comparison (Object + casting)
+```java
+Object data = parseJson(input);
+// String name = data.name; // Error: Cannot find symbol 'name'
+
+if (data instanceof User u) {
+  System.out.println(u.name()); // Valid: narrowed to User
+}
+```
+
+#### TypeScript Example (unknown + narrowing)
 ```ts
 function parseJson(input: string): unknown {
   return JSON.parse(input)
 }
+
+const data = parseJson('{"name": "test"}');
+// console.log(data.name); // Error: Object is of type 'unknown'
+
+if (typeof data === 'object' && data !== null && 'name' in data) {
+  console.log(data.name); // Valid: narrowed to something with a 'name'
+}
 ```
 
-Use `unknown` for external input (API, localStorage, query params), then validate.
+Use `unknown` for external input (API, localStorage, query params), then validate before use.
 
 ### 3.3 Union types and discriminated unions
 
-Java often uses class hierarchies; TypeScript often uses tagged unions.
+Java often uses class hierarchies or interfaces with multiple implementations; TypeScript often uses tagged unions (similar to `sealed` classes with `permits` in modern Java 17+).
 
+#### Java Example (Sealed Classes - Java 17+)
+```java
+sealed interface LoadState permits Idle, Loading, Success, Error {}
+record Success(int data) implements LoadState {}
+record Error(String message) implements LoadState {}
+
+int handleState(LoadState state) {
+    return switch (state) {
+        case Success s -> s.data();
+        default -> 0;
+    };
+}
+```
+
+#### TypeScript Example (Discriminated Union)
 ```ts
 type LoadState =
   | { kind: "idle" }
   | { kind: "loading" }
   | { kind: "success"; data: number }
   | { kind: "error"; message: string }
+
+function handleState(state: LoadState) {
+  switch (state.kind) {
+    case "success": return state.data; // state is automatically narrowed to success object here
+    default: return null;
+  }
+}
 ```
 
 Interview answer:
 
-- "Discriminated unions model finite UI states safely and avoid impossible states."
+- "Discriminated unions model finite UI states safely and avoid 'impossible states' (e.g., having both `data` and `errorMessage` at the same time)."
 
 ### 3.4 Generics and utility types
 
-Useful built-ins:
+Useful built-ins and their Java mental models:
 
-- `Partial<T>` for patch/update DTOs
-- `Pick<T, K>` for projection
-- `Omit<T, K>` for excluding fields
-- `Readonly<T>` for immutability guarantees
+- `Partial<T>`: Like a "Patch DTO" where all fields are optional.
+- `Readonly<T>`: Like `Collections.unmodifiableList()` but at the type level for the whole object.
+- `Pick<T, K>`: Like a Projection in Spring Data JPA where you only want specific fields.
 
-Analogy: similar intent to Java generics + DTO mappers, but with compile-time transformations.
+#### Comparison
+- **Java**: You often create separate classes for different views of an entity (e.g., `User`, `UserSummary`, `UpdateUserRequest`).
+- **TypeScript**: You can transform an existing type into a new one using utility types. `type UserSummary = Pick<User, 'name' | 'email'>`.
 
 ### 3.5 `satisfies` keyword (used in this project)
 
@@ -114,11 +167,11 @@ Why this is interview-relevant:
 
 ### 4.1 Render, commit, and effects
 
-- **Render phase**: React calculates next UI (pure computation)
-- **Commit phase**: React applies minimal DOM changes
-- **Effects** (`useEffect`): run after commit for side effects
+- **Render phase**: React calculates the next UI (pure computation). It's like building a virtual representation of your view in memory. No real DOM/screen updates happen here.
+- **Commit phase**: React applies the minimal set of changes to the real browser DOM.
+- **Effects** (`useEffect`): Runs *after* the commit. Used for side effects like data fetching or manual DOM manipulation.
 
-Java analogy: separate "compute new model/view" from "perform IO/listeners".
+**Java analogy**: Think of a Swing/JavaFX application. The **Render phase** is like calculating the bounds and colors of your components in memory, and the **Commit phase** is when the toolkit actually draws them on the screen. The **Effect** is like a listener that triggers only after the UI is visible.
 
 ### 4.2 State updates are scheduled, not immediate
 
@@ -144,10 +197,9 @@ Interview answer:
 
 In `web/src/App.tsx`, recent sales use `key={s.email}`.
 
-Why not index keys:
+**Java analogy**: Think of keys like `equals()` and `hashCode()`. They allow React to identify which item in a collection is which. Without a unique key, if you reorder a list, React might lose track of which component's state belongs to which physical item.
 
-- Reordering can attach wrong DOM/state to wrong row.
-- Stable keys are equivalent to entity identity in persistence.
+- **Why not index keys**: If you use an array index (`key={0}`, `key={1}`), and then sort the list, React will think the item at index 0 is still the same item, even if the data inside it changed. This leads to broken UI state (like a checkbox staying checked on the wrong row).
 
 ---
 
@@ -210,7 +262,7 @@ Interview answer:
 
 This project uses CSS variables and shadcn/tailwind conventions.
 
-Analogy: similar to centralized constants/theme objects in Java UI frameworks, but applied via CSS custom properties.
+**Java analogy**: Similar to a `Theme` class or a centralized `Colors` constants file in a Java UI framework. Instead of repeating hex codes everywhere, you use variables like `var(--primary)`. Tailwind makes this easier by giving you classes like `text-primary`.
 
 ---
 
@@ -218,12 +270,12 @@ Analogy: similar to centralized constants/theme objects in Java UI frameworks, b
 
 ### `web/src/App.tsx`
 
-- `useState<number>(0)`: default-safe render values; avoids `undefined` rendering branches.
-- `useEffect(..., [])`: mount-time fetch behavior, similar to one-time initialization.
-- `Promise.all([...])`: parallel endpoint loading for dashboard metrics.
-- `recentSales.map(... key={s.email})`: stable identity for list diffing.
-- `chartConfig satisfies ChartConfig`: strict config contract without losing inference.
-- `formatCurrency(...)`: formatting helper equivalent to Java locale APIs.
+- `useState<number>(0)`: initializes state with a default value. In Java, this is like private field with an initial value: `private int totalRevenue = 0;`.
+- `useEffect(..., [])`: mount-time fetch behavior. Think of this as the `@PostConstruct` of your component—it runs exactly once after the component is added to the UI.
+- `Promise.all([...])`: parallel endpoint loading. Equivalent to launching multiple `CompletableFuture`s and waiting for `allOf()`.
+- `recentSales.map(... key={s.email})`: similar to why you use `id` or a primary key in a `List` to identify objects when rendering in a template engine.
+- `chartConfig satisfies ChartConfig`: ensures the object matches a type but keeps its specific values known (e.g., specific color names).
+- `formatCurrency(...)`: localization helper similar to `NumberFormat` in Java.
 
 ### `src/main/java/ca/mikhailov/srr/DashboardController.java`
 
