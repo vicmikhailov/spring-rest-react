@@ -1,32 +1,18 @@
 /**
  * [IMPORTS]
- * 
+ *
  * For Java Developers:
  * - `import` in JavaScript/TypeScript is similar to `import` in Java.
  * - `@/` is a "Path Alias" defined in `tsconfig.json`, mapping to `web/src/`.
- *   It's like importing from your project's root package instead of using 
+ *   It's like importing from your project's root package instead of using
  *   relative paths like `../../components`.
  */
-import React, { useEffect, useState } from "react"
-import {
-  Avatar,
-  AvatarFallback,
-} from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
-import { Input } from "@/components/ui/input"
+import React, {useEffect, useState} from "react"
+import {Avatar, AvatarFallback,} from "@/components/ui/avatar"
+import {Button} from "@/components/ui/button"
+import {Card, CardContent, CardDescription, CardHeader, CardTitle,} from "@/components/ui/card"
+import {ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent,} from "@/components/ui/chart"
+import {Input} from "@/components/ui/input"
 import {
   Sidebar,
   SidebarContent,
@@ -38,27 +24,28 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { Separator } from "@/components/ui/separator"
+import {Separator} from "@/components/ui/separator"
 import {
+  Activity,
+  Bell,
+  CreditCard,
+  DollarSign,
+  Download,
+  Ellipsis,
   Home,
   LineChart,
-  Users,
-  Settings,
-  Search,
-  Bell,
-  Download,
   Plus,
-  DollarSign,
-  Activity,
-  CreditCard,
-  Ellipsis,
+  Search,
+  Settings,
+  Users,
 } from "lucide-react"
-import { Bar, BarChart as RechartsBarChart, XAxis, YAxis } from "recharts"
+import {Bar, BarChart as RechartsBarChart, XAxis, YAxis} from "recharts"
 
 // [TYPES VS RUNTIME]
 // These TypeScript type aliases disappear at runtime (just like Java generics are erased),
 // but they let the compiler catch shape mismatches. Think of them as light-weight Java
 // records/interfaces that only exist during compilation for safety.
+type ApiResponse<T> = { data: T }
 type SeriesPoint = { label: string; value: number }
 type RecentSale = { name: string; email: string; amount: number; initials: string }
 type MonthlyRevenueData = {
@@ -71,42 +58,42 @@ type MonthlyRevenueData = {
 
 /**
  * [ROOT COMPONENT] App
- * 
- * In React, components are functions that return JSX (a syntax that looks like 
+ *
+ * In React, components are functions that return JSX (a syntax that looks like
  * HTML but is actually JavaScript).
- * 
+ *
  * For Java Developers:
- * - This is your main "View-Controller". It manages the state (data) and 
+ * - This is your main "View-Controller". It manages the state (data) and
  *   orchestrates how the sub-components are displayed.
- * 
+ *
  * - Pattern: "Lift State Up" or "Container Pattern".
- *   This component is a "Smart" component—it handles data fetching and logic, 
- *   then passes that data down as "props" to "Dumb" (Presentation) components 
+ *   This component is a "Smart" component—it handles data fetching and logic,
+ *   then passes that data down as "props" to "Dumb" (Presentation) components
  *   like `StatCard` or `BarChart`.
  */
 export default function App() {
   /**
    * [STATE MANAGEMENT] Application Data
-   * 
+   *
    * Q: Why 'const' and not 'let'?
-   * A: In React, we never reassign state variables directly (e.g., totalRevenue = 100). 
-   *    Instead, we use the provided 'setter' function. 'const' enforces this 
+   * A: In React, we never reassign state variables directly (e.g., totalRevenue = 100).
+   *    Instead, we use the provided 'setter' function. 'const' enforces this
    *    immutability at the language level.
-   * 
+   *
    * 🚫 Antipattern: Direct State Mutation
    *    `totalRevenue = 500` (Wrong!)
    *    `revenueSeries.push({ label: 'Mar', value: 100 })` (Wrong!)
-   *    These bypass React's tracking. The UI won't update because React 
+   *    These bypass React's tracking. The UI won't update because React
    *    doesn't know a change occurred.
-   * 
+   *
    * ✅ Correct: Functional State Updates
    *    `setTotalRevenue(500)` (Right!)
    *    `setRevenueSeries([...revenueSeries, { label: 'Mar', value: 100 }])` (Right!)
    *    This creates a *new* reference, which React detects and triggers a re-render.
-   * 
+   *
    * Q: Why the generic <number> or <SeriesPoint[]>?
-   * A: TypeScript is "Staticly Typed". Just like 'List<String>' in Java, this 
-   *    ensures that we don't accidentally put a string into a numeric state, 
+   * A: TypeScript is "Staticly Typed". Just like 'List<String>' in Java, this
+   *    ensures that we don't accidentally put a string into a numeric state,
    *    preventing runtime 'NaN' or 'undefined' errors.
    */
   const [totalRevenue, setTotalRevenue] = useState<number>(0)
@@ -118,46 +105,46 @@ export default function App() {
 
   /**
    * [DATA FETCHING] useEffect
-   * 
-   * React provides a built-in `fetch` function (similar to `HttpClient` in Java) 
-   * to make HTTP requests. 
-   * 
+   *
+   * React provides a built-in `fetch` function (similar to `HttpClient` in Java)
+   * to make HTTP requests.
+   *
    * Why inside useEffect?
-   * - Fetching data is a "Side Effect". It shouldn't happen during the "Pure" 
-   *   render cycle of the component. 
-   * 
+   * - Fetching data is a "Side Effect". It shouldn't happen during the "Pure"
+   *   render cycle of the component.
+   *
    * 🚫 Antipattern: Missing Dependency Array
    *    `useEffect(() => { ... })` (No second argument)
-   *    This runs on EVERY render. If the effect updates state, it triggers 
+   *    This runs on EVERY render. If the effect updates state, it triggers
    *    a re-render, which runs the effect again... creating an infinite loop.
-   * 
+   *
    * 🚫 Antipattern: Waterfall Fetching (Wait-and-Wait)
    *    `const a = await fetch('/api/a'); const b = await fetch('/api/b');`
    *    This forces the requests to be sequential, slowing down the page load.
-   * 
+   *
    * ✅ Correct: Parallel Fetching
    *    `Promise.all([fetch('/api/a'), fetch('/api/b')])`
    *    Fires all requests at once, maximizing throughput.
-   * 
+   *
    * Why an empty array `[]` as the second argument?
-   * - It's the "Dependency Array". It tells React to only run this effect ONCE 
-   *   when the component mounts. Without it (or with a dependency that changes), 
-   *   you could end up in an infinite loop: 
+   * - It's the "Dependency Array". It tells React to only run this effect ONCE
+   *   when the component mounts. Without it (or with a dependency that changes),
+   *   you could end up in an infinite loop:
    *   (Fetch -> Update State -> Re-render -> Fetch again...).
    */
   useEffect(() => {
     /**
      * [DATA FETCHING] Promise.all
-     * 
+     *
      * Q: Why fetch all at once?
-     * A: Performance. This is "Parallel Execution". Instead of waiting for 
-     *    one request to finish before starting the next (Sequential), we 
-     *    fire them all. The UI only waits for the slowest request, not the 
+     * A: Performance. This is "Parallel Execution". Instead of waiting for
+     *    one request to finish before starting the next (Sequential), we
+     *    fire them all. The UI only waits for the slowest request, not the
      *    sum of all requests.
-     * 
+     *
      * Q: Why the 'as Promise<...>' cast?
-     * A: 'fetch' returns a generic JSON object. TypeScript doesn't know the 
-     *    shape of your API response. This cast is like telling the compiler: 
+     * A: 'fetch' returns a generic JSON object. TypeScript doesn't know the
+     *    shape of your API response. This cast is like telling the compiler:
      *    "Trust me, I know the Java backend returns this specific Record/DTO."
      *
      * Interview nuance:
@@ -165,33 +152,33 @@ export default function App() {
      * - In production-grade apps, add schema validation for external data.
      */
     Promise.all([
-      fetch("/api/total-revenue").then((r) => r.json() as Promise<number>),
-      fetch("/api/subscriptions").then((r) => r.json() as Promise<number>),
-      fetch("/api/sales").then((r) => r.json() as Promise<number>),
-      fetch("/api/active-now").then((r) => r.json() as Promise<number>),
-      fetch("/api/monthly-revenue").then((r) => r.json() as Promise<MonthlyRevenueData>),
-      fetch("/api/recent-sales").then((r) => r.json() as Promise<RecentSale[]>),
+      fetch("/api/total-revenue").then((r) => r.json() as Promise<ApiResponse<number>>),
+      fetch("/api/subscriptions").then((r) => r.json() as Promise<ApiResponse<number>>),
+      fetch("/api/sales").then((r) => r.json() as Promise<ApiResponse<number>>),
+      fetch("/api/active-now").then((r) => r.json() as Promise<ApiResponse<number>>),
+      fetch("/api/monthly-revenue").then((r) => r.json() as Promise<ApiResponse<MonthlyRevenueData>>),
+      fetch("/api/recent-sales").then((r) => r.json() as Promise<ApiResponse<RecentSale[]>>),
     ])
       /**
        * Q: What is this ([total, subs...]) syntax?
-       * A: "Array Destructuring". Promise.all returns an array of results. 
-       *    Instead of doing 'const total = results[0]', we extract them into 
+       * A: "Array Destructuring". Promise.all returns an array of results.
+       *    Instead of doing 'const total = results[0]', we extract them into
        *    named variables immediately. It's cleaner and more readable.
        */
       .then(([total, subs, salesCount, active, monthly, sales]) => {
         /**
-         * [STATE BATCHING] 
-         * In React 18+, multiple state updates within the same event/promise 
-         * are "batched" together. This means the component only re-renders 
-         * ONCE after all six `set...` calls are finished, which is a big 
+         * [STATE BATCHING]
+         * In React 18+, multiple state updates within the same event/promise
+         * are "batched" together. This means the component only re-renders
+         * ONCE after all six `set...` calls are finished, which is a big
          * performance optimization.
          */
-        setTotalRevenue(total)
-        setSubscriptions(subs)
-        setSales(salesCount)
-        setActiveNow(active)
-        setRevenueSeries(monthly.revenueSeries)
-        setRecentSales(sales)
+        setTotalRevenue(total.data)
+        setSubscriptions(subs.data)
+        setSales(salesCount.data)
+        setActiveNow(active.data)
+        setRevenueSeries(monthly.data.revenueSeries)
+        setRecentSales(sales.data)
       })
        .catch((e) => {
         // Error handling: similar to a try-catch block in Java.
@@ -201,24 +188,24 @@ export default function App() {
 
   /**
    * [JSX] The View Layer (HTML-in-JS)
-   * 
-   * JSX allows us to write UI structure that looks like HTML but is actually 
+   *
+   * JSX allows us to write UI structure that looks like HTML but is actually
    * JavaScript objects.
-   * 
+   *
    * Key differences for Java Developers:
-   * - `className`: In JS, `class` is a reserved keyword (for classes), so React 
+   * - `className`: In JS, `class` is a reserved keyword (for classes), so React
    *   uses `className` to specify CSS classes.
-   * 
-   * - `{}`: Expression curly braces. These allow you to inject any JavaScript 
-   *   logic, variables, or function calls directly into your HTML. 
+   *
+   * - `{}`: Expression curly braces. These allow you to inject any JavaScript
+   *   logic, variables, or function calls directly into your HTML.
    *   Think of it like **JSP EL `${}`** or **Thymeleaf `th:text`**.
-   * 
+   *
    * - Layout Pattern: Tailwind Utility Classes
    *   Instead of `style="display: flex;"`, we use `className="flex"`.
    *   - `flex`: Display Flexbox (for layouts)
    *   - `grid`: CSS Grid (for 2D layouts)
    *   - `gap-4`: Spacing between child elements
-   *   - `md:grid-cols-2`: "Medium" screens (and up) should have 2 columns. 
+   *   - `md:grid-cols-2`: "Medium" screens (and up) should have 2 columns.
    *     This is "Responsive Design".
    */
   // SidebarProvider is a context (like a scoped Spring ApplicationContext) that shares
@@ -243,12 +230,12 @@ export default function App() {
           <div className="ml-auto flex items-center gap-2">
             {/**
              * [EVENT HANDLING] onClick
-             * 
+             *
              * In React, event listeners are passed as props (camelCase: `onClick`).
-             * Unlike Java Swing where you'd add an `ActionListener` class, in React 
+             * Unlike Java Swing where you'd add an `ActionListener` class, in React
              * you pass a function or a lambda.
-             * 
-             * Example: 
+             *
+             * Example:
              * `<Button onClick={() => console.log('clicked')}>`
              */}
             <Button variant="secondary" size="sm">
@@ -334,18 +321,18 @@ export default function App() {
                 <ul className="space-y-4">
                   {/**
                    * Q: Why .map() and not a for-loop?
-                   * A: React is functional. .map() transforms data directly into 
+                   * A: React is functional. .map() transforms data directly into
                    *    UI elements. It's more declarative than a manual loop.
-                   * 
+                   *
                    * 🚫 Antipattern: Using Array Index as Key
                    *    `recentSales.map((s, index) => <li key={index}>...</li>)`
-                   *    This is "dangerous". If the order of the items changes, 
-                   *    React gets confused and might map the wrong state/focus 
-                   *    to the wrong DOM element. 
-                   * 
+                   *    This is "dangerous". If the order of the items changes,
+                   *    React gets confused and might map the wrong state/focus
+                   *    to the wrong DOM element.
+                   *
                    * ✅ Correct: Using a Unique Stable ID
                    *    `key={s.email}` or `key={s.id}`
-                   *    This ensures React can track the same entity across 
+                   *    This ensures React can track the same entity across
                    *    different renders, even if it moves in the array.
                    */
                   recentSales.map((s) => (
@@ -372,7 +359,7 @@ export default function App() {
 
 /**
  * [SIDEBAR COMPONENT]
- * 
+ *
  * Demonstrates basic layout components from the UI library.
  */
 function AppSidebar() {
@@ -385,8 +372,8 @@ function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu className="px-2">
-          {/* 
-              [ACTIVE STATE] 
+          {/*
+              [ACTIVE STATE]
               In React, we pass boolean props like `isActive` to change component appearance.
           */}
           <SidebarMenuItem>
@@ -424,26 +411,26 @@ function AppSidebar() {
 
 /**
  * [REUSABLE COMPONENT] StatCard
- * 
- * This is a "Dumb" or "Presentation" component. It doesn't know about 
+ *
+ * This is a "Dumb" or "Presentation" component. It doesn't know about
  * APIs or global state; it just displays what it's told to display.
- * 
+ *
  * For Java Developers:
  * - The parameter `{ title, icon, value, description }` uses "Object Destructuring".
- *   It's like passing a `DTO` (Data Transfer Object) to a method and 
+ *   It's like passing a `DTO` (Data Transfer Object) to a method and
  *   immediately extracting its fields into local variables.
- * 
- * - Java Analogy: 
+ *
+ * - Java Analogy:
  *   `public String StatCard(StatCardDTO props) { ... }`
- * 
- * @param props 
+ *
+ * @param props
  *  - title: The label for the card (e.g. "Total Revenue")
  *  - icon: A Lucide-react component passed as a JSX element
  *  - value: The formatted string to display (e.g. "$45,231")
  *  - description: Optional sub-text (e.g. "+20.1% from last month")
- * 
+ *
  * Q: Why 'React.ReactNode' for the icon?
- * A: This is a flexible type that covers anything React can render: 
+ * A: This is a flexible type that covers anything React can render:
  *    strings, numbers, other components, or even 'null'.
  */
 function StatCard({ title, icon, value, description }: { title: string; icon?: React.ReactNode; value: string; description?: string }) {
@@ -458,10 +445,10 @@ function StatCard({ title, icon, value, description }: { title: string; icon?: R
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
         {/**
-         * [CONDITIONAL RENDERING] 
-         * In React, we use the `condition ? true : false` (ternary) or 
+         * [CONDITIONAL RENDERING]
+         * In React, we use the `condition ? true : false` (ternary) or
          * `condition && <element>` pattern to show/hide parts of the UI.
-         * 
+         *
          * Java Analogy:
          * if (description != null) { render(description); }
          */}
@@ -473,18 +460,18 @@ function StatCard({ title, icon, value, description }: { title: string; icon?: R
 
 /**
  * [CHART COMPONENT] BarChart
- * 
- * This component wraps the "Recharts" library logic. It takes a raw 
+ *
+ * This component wraps the "Recharts" library logic. It takes a raw
  * data array (`series`) and transforms it into a visual bar chart.
- * 
+ *
  * Pattern: "Configuration Object"
- * We use a `chartConfig` object to centralize styles and labels for 
+ * We use a `chartConfig` object to centralize styles and labels for
  * the chart, which keeps the JSX cleaner.
- * 
+ *
  * Q: What does 'satisfies ChartConfig' do?
- * A: It's "Type Validation without Widening". It checks that 'chartConfig' 
- *    is a valid 'ChartConfig', but it doesn't 'forget' the specific 
- *    property names inside. This gives you better autocompletion and 
+ * A: It's "Type Validation without Widening". It checks that 'chartConfig'
+ *    is a valid 'ChartConfig', but it doesn't 'forget' the specific
+ *    property names inside. This gives you better autocompletion and
  *    stronger type checking than just ': ChartConfig'.
  */
 function BarChart({ series }: { series: SeriesPoint[] }) {
@@ -533,18 +520,18 @@ function BarChart({ series }: { series: SeriesPoint[] }) {
 
 /**
  * [HELPER FUNCTION] formatCurrency
- * 
+ *
  * A pure JavaScript utility function for formatting numbers as USD.
- * 
+ *
  * For Java Developers:
  * - This is exactly like using `java.text.NumberFormat.getCurrencyInstance(Locale.US)`.
- * - `toLocaleString` is a built-in method in JavaScript for internationalization, 
+ * - `toLocaleString` is a built-in method in JavaScript for internationalization,
  *   similar to `Locale`-based formatting in Java.
  */
 function formatCurrency(v: number) {
-  return v.toLocaleString(undefined, { 
-    style: "currency", 
-    currency: "USD", 
-    maximumFractionDigits: 0 
+  return v.toLocaleString(undefined, {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0
   })
 }
