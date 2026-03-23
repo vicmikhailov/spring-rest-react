@@ -5,22 +5,66 @@ import { cn } from "@/components/lib/utils"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
+/**
+ * [COMPONENT] Sheet
+ * 
+ * A slide-out panel that appears from the edge of the screen, typically used
+ * for navigation, filters, or additional context without leaving the current view.
+ * 
+ * For Java Developers:
+ * - Similar to a Modal `JDialog` (Swing) or a `Stage` with a specific 
+ *   transition (JavaFX).
+ * - The "Root" component manages the open/closed state of the sheet.
+ */
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
 }
 
+/**
+ * [COMPONENT] SheetTrigger
+ * 
+ * The element that opens the sheet when clicked.
+ * 
+ * For Java Developers:
+ * - Equivalent to a `JButton` or `MenuItem` that has an `ActionListener` 
+ *   to show a dialog.
+ */
 function SheetTrigger({ ...props }: SheetPrimitive.Trigger.Props) {
   return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />
 }
 
+/**
+ * [COMPONENT] SheetClose
+ * 
+ * An element used to close the sheet.
+ */
 function SheetClose({ ...props }: SheetPrimitive.Close.Props) {
   return <SheetPrimitive.Close data-slot="sheet-close" {...props} />
 }
 
+/**
+ * [COMPONENT] SheetPortal
+ * 
+ * Renders the sheet content into a portal, typically at the end of the 
+ * document body to avoid z-index and overflow issues.
+ * 
+ * For Java Developers:
+ * - Think of this as ensuring your dialog is rendered in the top-level 
+ *   window container regardless of where it's defined in the component hierarchy.
+ */
 function SheetPortal({ ...props }: SheetPrimitive.Portal.Props) {
   return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />
 }
 
+/**
+ * [COMPONENT] SheetOverlay
+ * 
+ * The semi-transparent background that appears behind the sheet.
+ * 
+ * For Java Developers:
+ * - Similar to the "glass pane" in Swing that blocks input to the 
+ *   rest of the application.
+ */
 function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
   return (
     <SheetPrimitive.Backdrop
@@ -34,6 +78,17 @@ function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
   )
 }
 
+/**
+ * [COMPONENT] SheetContent
+ * 
+ * The main container for the sheet's content, including the slide-in 
+ * animation and positioning.
+ * 
+ * For Java Developers:
+ * - This is the `contentPane` of your sheet. 
+ * - The `side` prop (top, right, bottom, left) is like setting a 
+ *   `BorderLayout` position or a slide-in animation direction.
+ */
 function SheetContent({
   className,
   children,
@@ -78,6 +133,11 @@ function SheetContent({
   )
 }
 
+/**
+ * [COMPONENT] SheetHeader
+ * 
+ * The top section of the sheet, typically used for titles and descriptions.
+ */
 function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -88,6 +148,11 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * [COMPONENT] SheetFooter
+ * 
+ * The bottom section of the sheet, often used for actions.
+ */
 function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -98,6 +163,11 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * [COMPONENT] SheetTitle
+ * 
+ * The main heading for the sheet content.
+ */
 function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
   return (
     <SheetPrimitive.Title
@@ -108,6 +178,11 @@ function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
   )
 }
 
+/**
+ * [COMPONENT] SheetDescription
+ * 
+ * Provides additional context or details about the sheet's purpose.
+ */
 function SheetDescription({
   className,
   ...props

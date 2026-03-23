@@ -13,28 +13,30 @@ import java.util.List;
  *
  * This Spring Boot RestController provides the data for the React frontend.
  *
- * For Frontend Developers:
- * - Each `@GetMapping` maps to a `fetch("/api/...")` call in `web/src/App.tsx`.
- * - The return types (Java Records) are automatically serialized to JSON by Spring (Jackson).
+ * Python Analogy:
+ * - This is like a FastAPI `APIRouter` or Flask `Blueprint`.
+ * - `@RequestMapping("/api")` is the `prefix="/api"`.
+ *
+ * TypeScript Analogy:
+ * - This is like a NestJS `@Controller('/api')` or an Express `Router`.
  *
  * 🚫 Antipattern: Breaking the Contract
  *    Changing a field name here (e.g., `totalRevenue` -> `revenue`) without
  *    updating the frontend `type` definitions will cause the UI to break
  *    silently, showing `undefined` or `NaN`.
- *
- * For Java Developers:
- * - This is a standard REST controller using modern Java Features like `record`.
- * - In this project, data is hardcoded for demonstration purposes, but it
- *   would typically come from a Database via JPA or JDBC.
- *
- * Interview note:
- * - API evolution should be contract-first. If you rename/remove fields here,
- *   add/update endpoint tests (MockMvc) so frontend regressions are caught early.
  */
 @RestController
 @RequestMapping("/api")
 public class DashboardController {
 
+    /**
+     * [ENDPOINT] getMonthlyRevenue
+     *
+     * Returns aggregated revenue data for each month.
+     *
+     * Python Analogy: `@app.get("/monthly-revenue")` (FastAPI)
+     * TypeScript Analogy: `@Get('/monthly-revenue')` (NestJS) or `router.get('/monthly-revenue', ...)` (Express)
+     */
     @GetMapping("/monthly-revenue")
     public ResponseEntity<ApiResponse<MonthlyRevenueData>> getMonthlyRevenue() {
         // Creates hardcoded monthly revenue series
@@ -56,26 +58,56 @@ public class DashboardController {
         return ResponseEntity.ok(new ApiResponse<>(new MonthlyRevenueData(45231.89, 2350, 12234, 573, series)));
     }
 
+    /**
+     * [ENDPOINT] getTotalRevenue
+     *
+     * Returns the total revenue as a double.
+     * Python/TS Analogy: GET /api/total-revenue -> number
+     */
     @GetMapping("/total-revenue")
     public ResponseEntity<ApiResponse<Double>> getTotalRevenue() {
         return ResponseEntity.ok(new ApiResponse<>(45231.89));
     }
 
+    /**
+     * [ENDPOINT] getSubscriptions
+     *
+     * Returns the total number of subscriptions.
+     * Python/TS Analogy: GET /api/subscriptions -> number
+     */
     @GetMapping("/subscriptions")
     public ResponseEntity<ApiResponse<Integer>> getSubscriptions() {
         return ResponseEntity.ok(new ApiResponse<>(2350));
     }
 
+    /**
+     * [ENDPOINT] getSalesCount
+     *
+     * Returns the total number of sales.
+     * Python/TS Analogy: GET /api/sales -> number
+     */
     @GetMapping("/sales")
     public ResponseEntity<ApiResponse<Integer>> getSalesCount() {
         return ResponseEntity.ok(new ApiResponse<>(12234));
     }
 
+    /**
+     * [ENDPOINT] getActiveNow
+     *
+     * Returns the number of currently active users.
+     * Python/TS Analogy: GET /api/active-now -> number
+     */
     @GetMapping("/active-now")
     public ResponseEntity<ApiResponse<Integer>> getActiveNow() {
         return ResponseEntity.ok(new ApiResponse<>(573));
     }
 
+    /**
+     * [ENDPOINT] getRecentSales
+     *
+     * Returns a list of recent sale transactions.
+     * Python/TS Analogy: GET /api/recent-sales -> Array<{ name, email, amount, initials }>
+     */
     @GetMapping("/recent-sales")
     public ResponseEntity<ApiResponse<List<RecentSale>>> getRecentSales() {
         return ResponseEntity.ok(new ApiResponse<>(Arrays.asList(
@@ -88,23 +120,41 @@ public class DashboardController {
     }
 
     /**
-     * [DTO] Data Transfer Objects
+     * [DTO] ApiResponse
      *
-     * These Java records define the "Contract" between the Backend and Frontend.
+     * A generic wrapper for all API responses to ensure a consistent JSON structure.
      *
-     * React Analogy:
-     * - These match the `type` definitions at the top of `web/src/App.tsx`.
-     * - `SeriesPoint` matches `type SeriesPoint = { label: string; value: number }`
-     *
-     * RESTful wrapper:
-     * - `ApiResponse<T>` is a generic envelope returned by every endpoint,
-     *   ensuring all responses are consistent JSON objects ({ "data": ... })
-     *   rather than bare primitives or arrays.
+     * Python Analogy: `class ApiResponse(BaseModel, Generic[T]): data: T` (Pydantic)
+     * TypeScript Analogy: `type ApiResponse<T> = { data: T }`
      */
     public record ApiResponse<T>(T data) {
     }
+
+    /**
+     * [DTO] SeriesPoint
+     *
+     * Represents a single data point in a chart (e.g., Month and Value).
+     * Python Analogy: `@dataclass class SeriesPoint: label: str; value: float`
+     * TypeScript Analogy: `type SeriesPoint = { label: string; value: number }`
+     */
     public record SeriesPoint(String label, double value) {}
+
+    /**
+     * [DTO] RecentSale
+     *
+     * Represents a single sale record in the "Recent Sales" list.
+     * Python Analogy: `class RecentSale(BaseModel): name: str; email: str; amount: float; initials: str`
+     * TypeScript Analogy: `type RecentSale = { name: string; email: string; amount: number; initials: string }`
+     */
     public record RecentSale(String name, String email, double amount, String initials) {}
+
+    /**
+     * [DTO] MonthlyRevenueData
+     *
+     * The main data structure for the dashboard's revenue overview.
+     * Python Analogy: `class MonthlyRevenueData(BaseModel): ...`
+     * TypeScript Analogy: `type MonthlyRevenueData = { ... }`
+     */
     public record MonthlyRevenueData(
             double totalRevenue,
             int subscriptions,

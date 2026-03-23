@@ -45,6 +45,12 @@ import {Bar, BarChart as RechartsBarChart, XAxis, YAxis} from "recharts"
 // These TypeScript type aliases disappear at runtime (just like Java generics are erased),
 // but they let the compiler catch shape mismatches. Think of them as light-weight Java
 // records/interfaces that only exist during compilation for safety.
+//
+// Q: Why not use 'class'?
+// A: Java developers often reach for classes here. However, in React, we prefer 
+//    Plain Old Data (POJO equivalent but simpler). Classes with internal methods
+//    break React's immutability patterns and 'useState' re-renders.
+//    Stick to 'type' or 'interface' for data models!
 type ApiResponse<T> = { data: T }
 type SeriesPoint = { label: string; value: number }
 type RecentSale = { name: string; email: string; amount: number; initials: string }
@@ -70,6 +76,10 @@ type MonthlyRevenueData = {
  *   This component is a "Smart" component—it handles data fetching and logic,
  *   then passes that data down as "props" to "Dumb" (Presentation) components
  *   like `StatCard` or `BarChart`.
+ *
+ * - Structure Note for Java Developers: 
+ *   We don't have separate 'Controller' and 'View' files. React components 
+ *   colocate UI (JSX) and Logic (hooks) in the same file to keep them in sync.
  */
 export default function App() {
   /**
@@ -96,10 +106,10 @@ export default function App() {
    *    ensures that we don't accidentally put a string into a numeric state,
    *    preventing runtime 'NaN' or 'undefined' errors.
    */
-  const [totalRevenue, setTotalRevenue] = useState<number>(0)
-  const [subscriptions, setSubscriptions] = useState<number>(0)
-  const [sales, setSales] = useState<number>(0)
-  const [activeNow, setActiveNow] = useState<number>(0)
+  const [totalRevenue, setTotalRevenue] = useState<number | undefined>()
+  const [subscriptions, setSubscriptions] = useState<number | undefined>()
+  const [sales, setSales] = useState<number | undefined>()
+  const [activeNow, setActiveNow] = useState<number | undefined>()
   const [revenueSeries, setRevenueSeries] = useState<SeriesPoint[]>([])
   const [recentSales, setRecentSales] = useState<RecentSale[]>([])
 
@@ -147,36 +157,32 @@ export default function App() {
      *    shape of your API response. This cast is like telling the compiler:
      *    "Trust me, I know the Java backend returns this specific Record/DTO."
      *
-     * Interview nuance:
+     * Important Note:
      * - `as` is compile-time only; it does NOT validate runtime JSON.
      * - In production-grade apps, add schema validation for external data.
      */
     Promise.all([
-      fetch("/api/total-revenue").then((r) => r.json() as Promise<ApiResponse<number>>),
-      fetch("/api/subscriptions").then((r) => r.json() as Promise<ApiResponse<number>>),
-      fetch("/api/sales").then((r) => r.json() as Promise<ApiResponse<number>>),
-      fetch("/api/active-now").then((r) => r.json() as Promise<ApiResponse<number>>),
       fetch("/api/monthly-revenue").then((r) => r.json() as Promise<ApiResponse<MonthlyRevenueData>>),
       fetch("/api/recent-sales").then((r) => r.json() as Promise<ApiResponse<RecentSale[]>>),
     ])
       /**
-       * Q: What is this ([total, subs...]) syntax?
+       * Q: What is this ([monthly, sales]) syntax?
        * A: "Array Destructuring". Promise.all returns an array of results.
-       *    Instead of doing 'const total = results[0]', we extract them into
+       *    Instead of doing 'const monthly = results[0]', we extract them into
        *    named variables immediately. It's cleaner and more readable.
        */
-      .then(([total, subs, salesCount, active, monthly, sales]) => {
+      .then(([monthly, sales]) => {
         /**
          * [STATE BATCHING]
          * In React 18+, multiple state updates within the same event/promise
          * are "batched" together. This means the component only re-renders
-         * ONCE after all six `set...` calls are finished, which is a big
+         * ONCE after all `set...` calls are finished, which is a big
          * performance optimization.
          */
-        setTotalRevenue(total.data)
-        setSubscriptions(subs.data)
-        setSales(salesCount.data)
-        setActiveNow(active.data)
+        setTotalRevenue(monthly.data.totalRevenue)
+        setSubscriptions(monthly.data.subscriptions)
+        setSales(monthly.data.sales)
+        setActiveNow(monthly.data.activeNow)
         setRevenueSeries(monthly.data.revenueSeries)
         setRecentSales(sales.data)
       })
@@ -262,27 +268,27 @@ export default function App() {
             <StatCard
               title="Total Revenue"
               icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
-              // `||` intentionally keeps the seeded demo value visible while real data loads.
-              // Interview note: `??` is safer when 0 must be preserved as a valid value.
-              value={formatCurrency(totalRevenue || 45231.89)}
+              // `??` is used to keep the seeded demo value visible while real data loads.
+              // Unlike `||`, it preserves '0' as a valid value if the real data is zero.
+              value={formatCurrency(totalRevenue ?? 45231.89)}
               description="+20.1% from last month"
             />
             <StatCard
               title="Subscriptions"
               icon={<Users className="h-4 w-4 text-muted-foreground" />}
-              value={`+${(subscriptions || 2350).toLocaleString()}`}
+              value={`+${(subscriptions ?? 2350).toLocaleString()}`}
               description="+180.1% from last month"
             />
             <StatCard
               title="Sales"
               icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
-              value={`+${(sales || 12234).toLocaleString()}`}
+              value={`+${(sales ?? 12234).toLocaleString()}`}
               description="+19% from last month"
             />
             <StatCard
               title="Active Now"
               icon={<Activity className="h-4 w-4 text-muted-foreground" />}
-              value={`+${(activeNow || 573).toLocaleString()}`}
+              value={`+${(activeNow ?? 573).toLocaleString()}`}
               description="+201 since last hour"
             />
           </div>

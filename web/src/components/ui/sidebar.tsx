@@ -44,6 +44,16 @@ type SidebarContextProps = {
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null)
 
+/**
+ * [HOOK] useSidebar
+ * 
+ * Provides access to the current sidebar state and control functions.
+ * Must be used within a `SidebarProvider`.
+ * 
+ * For Java Developers:
+ * - Like accessing a shared Model or a State property in a JavaFX 
+ *   Controller.
+ */
 function useSidebar() {
   const context = React.useContext(SidebarContext)
   if (!context) {
@@ -53,6 +63,17 @@ function useSidebar() {
   return context
 }
 
+/**
+ * [COMPONENT] SidebarProvider
+ * 
+ * The root container for the sidebar, managing its state (open, collapsed,
+ * mobile) and exposing it via context.
+ * 
+ * For Java Developers:
+ * - Think of this as the main "Controller" or "Model" that stores the 
+ *   state of your UI's left-side navigation.
+ * - `defaultOpen` is like a property's default value.
+ */
 function SidebarProvider({
   defaultOpen = true,
   open: openProp,
@@ -149,6 +170,16 @@ function SidebarProvider({
   )
 }
 
+/**
+ * [COMPONENT] Sidebar
+ * 
+ * The main container for the sidebar content. It handles different 
+ * layout variants (sidebar, floating, inset) and collapsible behaviors.
+ * 
+ * For Java Developers:
+ * - Similar to the left/right region in a `BorderLayout` or a 
+ *   `SplitPane` side.
+ */
 function Sidebar({
   side = "left",
   variant = "sidebar",
@@ -251,6 +282,15 @@ function Sidebar({
   )
 }
 
+/**
+ * [COMPONENT] SidebarTrigger
+ * 
+ * A button used to toggle the sidebar's open/collapsed state.
+ * 
+ * For Java Developers:
+ * - Equivalent to a `JButton` or `ToggleButton` with an 
+ *   `ActionListener` to collapse or expand a sidebar pane.
+ */
 function SidebarTrigger({
   className,
   onClick,
@@ -277,6 +317,12 @@ function SidebarTrigger({
   )
 }
 
+/**
+ * [COMPONENT] SidebarRail
+ * 
+ * A thin interactive strip at the edge of the sidebar that can also 
+ * toggle its state.
+ */
 function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
   const { toggleSidebar } = useSidebar()
 
@@ -302,6 +348,16 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
   )
 }
 
+/**
+ * [COMPONENT] SidebarInset
+ * 
+ * The main content area next to the sidebar, which adjusts its 
+ * layout based on the sidebar's state.
+ * 
+ * For Java Developers:
+ * - This is the `BorderLayout.CENTER` of your application when 
+ *   using the "inset" variant.
+ */
 function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   return (
     <main
@@ -315,6 +371,11 @@ function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   )
 }
 
+/**
+ * [COMPONENT] SidebarInput
+ * 
+ * A specialized `Input` component styled for use within the sidebar.
+ */
 function SidebarInput({
   className,
   ...props
@@ -329,6 +390,11 @@ function SidebarInput({
   )
 }
 
+/**
+ * [COMPONENT] SidebarHeader
+ * 
+ * The top section of the sidebar, typically used for logos or account switchers.
+ */
 function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -340,6 +406,11 @@ function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * [COMPONENT] SidebarFooter
+ * 
+ * The bottom section of the sidebar, typically used for user profiles or secondary actions.
+ */
 function SidebarFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -351,6 +422,11 @@ function SidebarFooter({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * [COMPONENT] SidebarSeparator
+ * 
+ * A horizontal line used to divide sidebar content.
+ */
 function SidebarSeparator({
   className,
   ...props
@@ -365,6 +441,11 @@ function SidebarSeparator({
   )
 }
 
+/**
+ * [COMPONENT] SidebarContent
+ * 
+ * The main scrollable area of the sidebar containing the primary navigation.
+ */
 function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -379,6 +460,14 @@ function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * [COMPONENT] SidebarGroup
+ * 
+ * Groups related menu items under a common label.
+ * 
+ * For Java Developers:
+ * - Like a `TitledBorder` panel or a `VBox` grouping.
+ */
 function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -390,6 +479,11 @@ function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * [COMPONENT] SidebarGroupLabel
+ * 
+ * A label for a `SidebarGroup`.
+ */
 function SidebarGroupLabel({
   className,
   render,
@@ -414,6 +508,11 @@ function SidebarGroupLabel({
   })
 }
 
+/**
+ * [COMPONENT] SidebarGroupAction
+ * 
+ * An optional action button (like "Add") associated with a group.
+ */
 function SidebarGroupAction({
   className,
   render,
@@ -438,6 +537,11 @@ function SidebarGroupAction({
   })
 }
 
+/**
+ * [COMPONENT] SidebarGroupContent
+ * 
+ * A container for items within a `SidebarGroup`.
+ */
 function SidebarGroupContent({
   className,
   ...props
@@ -452,6 +556,14 @@ function SidebarGroupContent({
   )
 }
 
+/**
+ * [COMPONENT] SidebarMenu
+ * 
+ * A list of navigation links or items within the sidebar.
+ * 
+ * For Java Developers:
+ * - Similar to a `JList` or `ListView`.
+ */
 function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
   return (
     <ul
@@ -463,6 +575,14 @@ function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
   )
 }
 
+/**
+ * [COMPONENT] SidebarMenuItem
+ * 
+ * A single item within a `SidebarMenu`.
+ * 
+ * For Java Developers:
+ * - Equivalent to a list cell or a single node in a `TreeView`.
+ */
 function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
   return (
     <li
@@ -496,6 +616,14 @@ const sidebarMenuButtonVariants = cva(
   }
 )
 
+/**
+ * [COMPONENT] SidebarMenuButton
+ * 
+ * The interactive element for a `SidebarMenuItem`.
+ * 
+ * For Java Developers:
+ * - This is the actual `JButton` or `Hyperlink` within the menu item.
+ */
 function SidebarMenuButton({
   render,
   isActive = false,
@@ -550,6 +678,11 @@ function SidebarMenuButton({
   )
 }
 
+/**
+ * [COMPONENT] SidebarMenuAction
+ * 
+ * An action button displayed on hover for a `SidebarMenuItem`.
+ */
 function SidebarMenuAction({
   className,
   render,
@@ -580,6 +713,11 @@ function SidebarMenuAction({
   })
 }
 
+/**
+ * [COMPONENT] SidebarMenuBadge
+ * 
+ * A status badge (e.g., notification count) for a menu item.
+ */
 function SidebarMenuBadge({
   className,
   ...props
@@ -597,6 +735,11 @@ function SidebarMenuBadge({
   )
 }
 
+/**
+ * [COMPONENT] SidebarMenuSkeleton
+ * 
+ * A loading state representation for sidebar menu items.
+ */
 function SidebarMenuSkeleton({
   className,
   showIcon = false,
@@ -635,6 +778,11 @@ function SidebarMenuSkeleton({
   )
 }
 
+/**
+ * [COMPONENT] SidebarMenuSub
+ * 
+ * A nested submenu within a `SidebarMenuItem`.
+ */
 function SidebarMenuSub({ className, ...props }: React.ComponentProps<"ul">) {
   return (
     <ul
@@ -649,6 +797,11 @@ function SidebarMenuSub({ className, ...props }: React.ComponentProps<"ul">) {
   )
 }
 
+/**
+ * [COMPONENT] SidebarMenuSubItem
+ * 
+ * An item within a `SidebarMenuSub`.
+ */
 function SidebarMenuSubItem({
   className,
   ...props
@@ -663,6 +816,11 @@ function SidebarMenuSubItem({
   )
 }
 
+/**
+ * [COMPONENT] SidebarMenuSubButton
+ * 
+ * The interactive element for a `SidebarMenuSubItem`.
+ */
 function SidebarMenuSubButton({
   render,
   size = "md",

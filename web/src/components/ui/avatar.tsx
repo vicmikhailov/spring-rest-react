@@ -3,6 +3,17 @@ import { Avatar as AvatarPrimitive } from "@base-ui/react/avatar"
 
 import { cn } from "@/components/lib/utils"
 
+/**
+ * [COMPONENT] Avatar
+ *
+ * The root container for an avatar, providing layout and sizing context
+ * for its children (Image, Fallback, Badge).
+ *
+ * For Java Developers:
+ * - This is your main "Parent Container" or "Bounding Box".
+ * - It uses a "Compound Component" pattern: the state (like whether the image
+ *   loaded successfully) is managed here and shared with children automatically.
+ */
 function Avatar({
   className,
   size = "default",
@@ -23,6 +34,16 @@ function Avatar({
   )
 }
 
+/**
+ * [COMPONENT] AvatarImage
+ *
+ * The actual image element for the avatar.
+ *
+ * For Java Developers:
+ * - This is like a specialized `ImageView`.
+ * - It automatically handles the loading state. If it fails, the `AvatarFallback`
+ *   sibling will be displayed instead.
+ */
 function AvatarImage({ className, ...props }: AvatarPrimitive.Image.Props) {
   return (
     <AvatarPrimitive.Image
@@ -36,6 +57,15 @@ function AvatarImage({ className, ...props }: AvatarPrimitive.Image.Props) {
   )
 }
 
+/**
+ * [COMPONENT] AvatarFallback
+ *
+ * Content to display when the avatar image is loading or fails to load.
+ *
+ * For Java Developers:
+ * - This is the "Null Object Pattern" or "Fallback" for the UI.
+ * - Commonly used to show initials (e.g., "JD" for John Doe).
+ */
 function AvatarFallback({
   className,
   ...props
@@ -52,6 +82,15 @@ function AvatarFallback({
   )
 }
 
+/**
+ * [COMPONENT] AvatarBadge
+ *
+ * A small status indicator (like an "Online" dot) that sits on the corner of the avatar.
+ *
+ * For Java Developers:
+ * - This is a "Decorator" that visually augments the base Avatar component.
+ * - It uses absolute positioning relative to the Avatar root.
+ */
 function AvatarBadge({ className, ...props }: React.ComponentProps<"span">) {
   return (
     <span
@@ -68,6 +107,15 @@ function AvatarBadge({ className, ...props }: React.ComponentProps<"span">) {
   )
 }
 
+/**
+ * [COMPONENT] AvatarGroup
+ *
+ * A layout container for stacking multiple avatars together.
+ *
+ * For Java Developers:
+ * - This is like a `HBox` or `FlowLayout` with negative spacing to create
+ *   the overlapping effect.
+ */
 function AvatarGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -81,6 +129,15 @@ function AvatarGroup({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * [COMPONENT] AvatarGroupCount
+ *
+ * Displays the number of hidden avatars when using an AvatarGroup.
+ *
+ * For Java Developers:
+ * - Used for "And X more" labels in a list.
+ * - It's a "Summary View" for a collection of data.
+ */
 function AvatarGroupCount({
   className,
   ...props
