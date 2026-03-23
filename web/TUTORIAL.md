@@ -26,7 +26,7 @@ Use this section for a quick overview.
 - `Optional.ofNullable(...).orElse(...)` -> `?.` / `??` (Optional chaining / Nullish coalescing)
 - `String.format(...)` / concat -> `` `Hello ${name}` `` (Template literals)
 - Getters/Setters/Builders -> Destructuring / Spread (`const {x} = obj`, `{...obj}`)
-- Java Lambdas -> Arrow Functions `(x) => { ... }`
+- Java Lambdas (`(x) -> { ... }`) -> Arrow Functions (`(x) => { ... }`)
 - Spring DI context -> React Context
 - `Container.add(child)` / `getChildren().add(node)` -> `{children}` prop
 
@@ -80,7 +80,7 @@ Key Takeaway:
 - `any`: disables type safety (like telling compiler to stop checking). It's essentially "the Wild West"—avoid this in production.
 - `unknown`: safe top type. Like `Object` in Java, but you cannot use it without casting or narrowing first.
 
-#### Java Comparison (Object + casting)
+#### Java Example (Object + casting)
 ```java
 Object data = parseJson(input);
 // String name = data.name; // Error: Cannot find symbol 'name'
@@ -214,26 +214,62 @@ Key Takeaway:
 
 ### 3.8 Arrow Functions vs Lambdas
 
-Both allow for concise anonymous functions, but TypeScript arrow functions also handle `this` binding differently (they lexically bind `this`).
+Both allow for concise anonymous functions. While the syntax is nearly identical, their underlying mechanics differ slightly.
 
-#### Java Example (Lambda)
+#### Java Example (Lambdas)
+
+In Java, a lambda is an implementation of a **Functional Interface** (an interface with exactly one abstract method).
+
 ```java
-list.stream().filter(s -> s.startsWith("A")).forEach(System.out::println);
+// Syntax: (parameters) -> { body }
+List<String> names = List.of("Alice", "Bob");
+
+// Using a lambda with Stream API
+names.stream()
+     .filter(n -> n.startsWith("A"))
+     .forEach(n -> System.out.println(n));
+
+// Method reference (shorthand)
+names.forEach(System.out::println);
 ```
 
-#### TypeScript Example (Arrow Function)
+#### TypeScript Example (Arrow Functions)
+
+In TypeScript, arrow functions are first-class objects and have a specific **Function Type**.
+
 ```ts
-list.filter(s => s.startsWith("A")).forEach(s => console.log(s));
+// Syntax: (parameters) => { body }
+const names = ["Alice", "Bob"];
+
+// Using an arrow function with Array methods
+names.filter(n => n.startsWith("A"))
+     .forEach(n => console.log(n));
+
+// Passing the function directly (similar to method reference)
+names.forEach(console.log); 
 ```
+
+#### Key Differences for Java Developers
+
+1.  **The Arrow**: Java uses `->`, TypeScript uses `=>`.
+2.  **Functional Interfaces vs. Function Types**: 
+    *   In Java, a lambda's type is determined by the functional interface it implements (e.g., `Predicate`, `Consumer`).
+    *   In TypeScript, functions are first-class types on their own (e.g., `(s: string) => boolean`).
+3.  **`this` Binding**: 
+    *   In Java, `this` inside a lambda refers to the enclosing class instance.
+    *   In TypeScript, arrow functions **lexically bind** `this`. They inherit `this` from the scope where they were defined. This is crucial in React (though we use functional components here).
+4.  **Closures**:
+    *   In Java, variables captured from the outer scope must be `final` or **effectively final**.
+    *   In TypeScript, arrow functions can capture and modify any variable in their scope. (Though React state should still be treated as immutable).
 
 Key Takeaway:
-- "Arrow functions are the standard for React components and hooks. Unlike regular `function` declarations, they don't create their own `this` context."
+- "Arrow functions are the standard for React. Use them for component definitions, event handlers, and hooks. They solve the common JS 'who is this?' problem by preserving the context from where they were created."
 
 ### 3.9 Template Literals
 
 Replacing `String.format` or manual concatenation with more readable syntax.
 
-#### Java Comparison
+#### Java Example
 ```java
 String greeting = String.format("Hello %s, you have %d notifications", name, count);
 ```
@@ -300,10 +336,7 @@ A common question for Java developers is: **"If I pass a prop to a parent, do it
 
 The answer is **No**. In React, props are not inherited in the OOP sense.
 
-#### Java Comparison (OOP Inheritance)
-
-In Java, if `Child` extends `Parent`, it automatically has access to `Parent`'s public/protected fields.
-
+#### Java Example (OOP Inheritance)
 ```java
 class Parent { public String theme = "dark"; }
 class Child extends Parent { 
@@ -311,7 +344,7 @@ class Child extends Parent {
 }
 ```
 
-#### React (Explicit Props)
+#### TypeScript Example (Explicit Props)
 
 In React, the **parent-child relationship is structural, not hierarchical** (in terms of class identity). Props must be passed explicitly from parent to child.
 
@@ -639,6 +672,64 @@ In Java, we often use CSS classes like `.dashboard-card` to group styles. In Tai
 ```
 If you need to reuse a complex set of classes, **create a React component** instead of a CSS class!
 
+### 10.7 Enums vs. Union Types
+
+Java developers love `enum`. While TypeScript has `enum`, it has several quirks (like generating real JS objects and sometimes-broken reverse mapping).
+
+#### ❌ The "Java Way" (TS Enum)
+```ts
+enum Status { IDLE, LOADING, SUCCESS }
+// Usage
+const s = Status.IDLE;
+```
+
+#### ✅ The "React/TS Way" (String Literal Unions)
+```ts
+type Status = "idle" | "loading" | "success";
+// Usage
+const s: Status = "idle";
+```
+**Why**: Unions are more "frontend-native," easier to serialize to JSON, and work perfectly with autocompletion without needing to import the enum object everywhere.
+
+### 10.8 `null` vs. `undefined`
+
+In Java, `null` is the only way to represent "nothing." In TypeScript, we have both `null` and `undefined`.
+
+- **`null`**: An intentional absence of a value (e.g., "The user has no middle name").
+- **`undefined`**: A value hasn't been assigned yet (e.g., "The data hasn't loaded from the API yet").
+
+#### ❌ The "Java Way" (Null everything)
+```ts
+const [data, setData] = useState<User | null>(null);
+```
+
+#### ✅ The "React/TS Way" (Prefer Undefined)
+```ts
+const [data, setData] = useState<User>(); // default is undefined
+```
+**Why**: Most React/JS tooling (like optional chaining `?.` and default parameters) is built around `undefined`. Using `undefined` for "not yet there" is more idiomatic.
+
+### 10.9 The `any` Trap
+
+Java developers often reach for `any` when they're frustrated with a complex type, treating it like `java.lang.Object`.
+
+#### ❌ The "Java Way" (Using `any`)
+```ts
+function handleData(data: any) {
+  console.log(data.name); // No compiler check!
+}
+```
+
+#### ✅ The "React/TS Way" (Using `unknown`)
+```ts
+function handleData(data: unknown) {
+  if (typeof data === "object" && data !== null && "name" in data) {
+    console.log(data.name); // Narrowed safely
+  }
+}
+```
+**Why**: `any` disables the compiler. `unknown` forces you to check the type before using it, preserving the safety you're used to in Java.
+
 ---
 
 ## 11. Practical Upgrade Ideas
@@ -663,7 +754,9 @@ If you need to reuse a complex set of classes, **create a React component** inst
 8. Why are template literals preferred over string concatenation in modern TypeScript?
 9. Explain what the `{children}` prop is and its Java equivalent.
 10. Are props in React inherited by children components? Explain the difference from Java class inheritance.
-11. For a Python/TypeScript developer, what is the Java `record` similar to?
+11. Why is `type Status = "idle" | "loading"` preferred over `enum Status` in TypeScript?
+12. When should a Java developer use `undefined` vs `null` in a React component?
+13. For a Python/TypeScript developer, what is the Java `record` similar to?
 
 If you can answer these cleanly with Java analogies, you are ready to work with this codebase.
 
@@ -747,7 +840,22 @@ If you can answer these cleanly with Java analogies, you are ready to work with 
 </details>
 
 <details>
-<summary>11. Java <code>record</code> equivalents?</summary>
+<summary>11. Why Union Types over Enums?</summary>
+
+- **The Choice**: `type Status = "idle" | "loading" | "success"`.
+- **The Reason**: TypeScript Enums generate real JavaScript objects and have confusing behavior with number-based mapping. Union types are purely compile-time, smaller in the final build, and easier to read when viewing raw JSON from an API.
+</details>
+
+<details>
+<summary>12. <code>undefined</code> vs. <code>null</code>?</summary>
+
+- **<code>undefined</code> (The Default)**: Use this for "not yet loaded" or "missing data." It's the native JS default for uninitialized variables.
+- **<code>null</code> (The Intentional)**: Use this only when you want to explicitly state that something is "empty" (like a user who has explicitly chosen to have no middle name).
+- **Rule of Thumb**: When in doubt, follow the React ecosystem and use `undefined` for loading states and optional props.
+</details>
+
+<details>
+<summary>13. Java <code>record</code> equivalents?</summary>
 
 - **Python**: Similar to **Pydantic's `BaseModel`** or a **`@dataclass`**.
 - **TypeScript**: Similar to a **`type`** or **`interface`**.
