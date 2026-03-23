@@ -30,16 +30,15 @@ import java.util.List;
 public class DashboardController {
 
     /**
-     * [ENDPOINT] getMonthlyRevenue
+     * [ENDPOINT] getRevenueSeries
      *
-     * Returns aggregated revenue data for each month.
+     * Returns the monthly revenue series data points for the chart.
      *
-     * Python Analogy: `@app.get("/monthly-revenue")` (FastAPI)
-     * TypeScript Analogy: `@Get('/monthly-revenue')` (NestJS) or `router.get('/monthly-revenue', ...)` (Express)
+     * Python Analogy: `@app.get("/revenue-series")` (FastAPI)
+     * TypeScript Analogy: `@Get('/revenue-series')` (NestJS) or `router.get('/revenue-series', ...)` (Express)
      */
-    @GetMapping("/monthly-revenue")
-    public ResponseEntity<ApiResponse<MonthlyRevenueData>> getMonthlyRevenue() {
-        // Creates hardcoded monthly revenue series
+    @GetMapping("/revenue-series")
+    public ResponseEntity<RevenueSeriesResponse> getRevenueSeries() {
         List<SeriesPoint> series = Arrays.asList(
                 new SeriesPoint("Jan", 12000),
                 new SeriesPoint("Feb", 14500),
@@ -55,7 +54,7 @@ public class DashboardController {
                 new SeriesPoint("Dec", 21500)
         );
 
-        return ResponseEntity.ok(new ApiResponse<>(new MonthlyRevenueData(45231.89, 2350, 12234, 573, series)));
+        return ResponseEntity.ok(new RevenueSeriesResponse(series));
     }
 
     /**
@@ -65,8 +64,8 @@ public class DashboardController {
      * Python/TS Analogy: GET /api/total-revenue -> number
      */
     @GetMapping("/total-revenue")
-    public ResponseEntity<ApiResponse<Double>> getTotalRevenue() {
-        return ResponseEntity.ok(new ApiResponse<>(45231.89));
+    public ResponseEntity<TotalRevenueResponse> getTotalRevenue() {
+        return ResponseEntity.ok(new TotalRevenueResponse(45231.89));
     }
 
     /**
@@ -76,8 +75,8 @@ public class DashboardController {
      * Python/TS Analogy: GET /api/subscriptions -> number
      */
     @GetMapping("/subscriptions")
-    public ResponseEntity<ApiResponse<Integer>> getSubscriptions() {
-        return ResponseEntity.ok(new ApiResponse<>(2350));
+    public ResponseEntity<SubscriptionsResponse> getSubscriptions() {
+        return ResponseEntity.ok(new SubscriptionsResponse(2350));
     }
 
     /**
@@ -87,8 +86,8 @@ public class DashboardController {
      * Python/TS Analogy: GET /api/sales -> number
      */
     @GetMapping("/sales")
-    public ResponseEntity<ApiResponse<Integer>> getSalesCount() {
-        return ResponseEntity.ok(new ApiResponse<>(12234));
+    public ResponseEntity<SalesResponse> getSalesCount() {
+        return ResponseEntity.ok(new SalesResponse(12234));
     }
 
     /**
@@ -98,8 +97,8 @@ public class DashboardController {
      * Python/TS Analogy: GET /api/active-now -> number
      */
     @GetMapping("/active-now")
-    public ResponseEntity<ApiResponse<Integer>> getActiveNow() {
-        return ResponseEntity.ok(new ApiResponse<>(573));
+    public ResponseEntity<ActiveNowResponse> getActiveNow() {
+        return ResponseEntity.ok(new ActiveNowResponse(573));
     }
 
     /**
@@ -109,8 +108,8 @@ public class DashboardController {
      * Python/TS Analogy: GET /api/recent-sales -> Array<{ name, email, amount, initials }>
      */
     @GetMapping("/recent-sales")
-    public ResponseEntity<ApiResponse<List<RecentSale>>> getRecentSales() {
-        return ResponseEntity.ok(new ApiResponse<>(Arrays.asList(
+    public ResponseEntity<RecentSalesResponse> getRecentSales() {
+        return ResponseEntity.ok(new RecentSalesResponse(Arrays.asList(
                 new RecentSale("Olivia Martin", "olivia.martin@example.com", 1500, "OM"),
                 new RecentSale("Jackson Lee", "jackson.lee@example.com", 1200, "JL"),
                 new RecentSale("Isabella Nguyen", "isabella.nguyen@example.com", 900, "IN"),
@@ -124,10 +123,28 @@ public class DashboardController {
      *
      * A generic wrapper for all API responses to ensure a consistent JSON structure.
      *
-     * Python Analogy: `class ApiResponse(BaseModel, Generic[T]): data: T` (Pydantic)
-     * TypeScript Analogy: `type ApiResponse<T> = { data: T }`
+     * React Analogy:
+     * - These match the `type` definitions at the top of `web/src/App.tsx`.
+     * - `SeriesPoint` matches `type SeriesPoint = { label: string; value: number }`
+     *
+     * Individual response records:
+     * - Each endpoint has its own dedicated response record instead of a shared
+     *   generic wrapper. This makes each contract explicit and independently
+     *   evolvable without affecting other endpoints.
      */
-    public record ApiResponse<T>(T data) {
+    public record TotalRevenueResponse(double totalRevenue) {
+    }
+
+    public record SubscriptionsResponse(int subscriptions) {
+    }
+
+    public record SalesResponse(int sales) {
+    }
+
+    public record ActiveNowResponse(int activeNow) {
+    }
+
+    public record RecentSalesResponse(List<RecentSale> recentSales) {
     }
 
     /**
@@ -149,17 +166,12 @@ public class DashboardController {
     public record RecentSale(String name, String email, double amount, String initials) {}
 
     /**
-     * [DTO] MonthlyRevenueData
+     * [DTO] RevenueSeriesResponse
      *
-     * The main data structure for the dashboard's revenue overview.
-     * Python Analogy: `class MonthlyRevenueData(BaseModel): ...`
-     * TypeScript Analogy: `type MonthlyRevenueData = { ... }`
+     * Response record for the /api/revenue-series endpoint.
+     * Python Analogy: `class RevenueSeriesResponse(BaseModel): revenueSeries: list[SeriesPoint]`
+     * TypeScript Analogy: `type RevenueSeriesResponse = { revenueSeries: SeriesPoint[] }`
      */
-    public record MonthlyRevenueData(
-            double totalRevenue,
-            int subscriptions,
-            int sales,
-            int activeNow,
-            List<SeriesPoint> revenueSeries
-    ) {}
+    public record RevenueSeriesResponse(List<SeriesPoint> revenueSeries) {
+    }
 }

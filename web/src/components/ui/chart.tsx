@@ -3,21 +3,21 @@
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 
-import { cn } from "@/components/lib/utils"
+import {cn} from "@/components/lib/utils"
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const
 
 /**
  * [ADVANCED COMPONENT] Chart System
- * 
+ *
  * This file integrates `recharts` with our Tailwind theme.
- * 
+ *
  * For Java Developers:
  * - This is like a "Chart Wrapper Library" (e.g., JFreeChart or JavaFX Charts wrapper).
  * - React Components: Think of them as classes with a `render()` method that returns UI.
  * - Props: These are constructor arguments or setter values passed to the component.
- * - This file uses CSS Variables (`--color-xxx`) to dynamically change chart colors 
+ * - This file uses CSS Variables (`--color-xxx`) to dynamically change chart colors
  *   when the user switches between Light and Dark mode.
  */
 
@@ -42,13 +42,13 @@ type ChartContextProps = {
 
 /**
  * ChartContext: This is like Spring's ApplicationContext or a ThreadLocal.
- * It stores shared data (the chart configuration) so child components can 
+ * It stores shared data (the chart configuration) so child components can
  * "autowire" it without having to pass it through every layer (prop drilling).
  */
 const ChartContext = React.createContext<ChartContextProps | null>(null)
 
 /**
- * useChart: A custom "Hook". 
+ * useChart: A custom "Hook".
  * Analogy: Think of it as @Autowired or context.getBean(ChartContext.class).
  * It retrieves the configuration from the nearest ChartContext.
  */
@@ -65,8 +65,8 @@ function useChart() {
 /**
  * ChartContainer: The "Bootstrapper" or "Configuration Class" for the chart.
  * It provides the ChartContext to all its children (the Provider pattern).
- * 
- * children: Like passing a lambda or a block of code to be executed 
+ *
+ * children: Like passing a lambda or a block of code to be executed
  * within this specific context.
  */
 function ChartContainer({
@@ -75,9 +75,9 @@ function ChartContainer({
   children,
   config,
   /**
-   * ...props: The "Spread" operator. 
-   * Analogy: Passing a Map of extra arguments to a method. 
-   * It takes all other properties passed to <ChartContainer /> 
+   * ...props: The "Spread" operator.
+   * Analogy: Passing a Map of extra arguments to a method.
+   * It takes all other properties passed to <ChartContainer />
    * and puts them into a 'props' object.
    */
   ...props
@@ -113,7 +113,7 @@ function ChartContainer({
 /**
  * ChartStyle: A "Dynamic CSS Generator".
  * It creates a <style> tag at runtime based on your ChartConfig.
- * Analogy: Like a template engine (Thymeleaf/FreeMarker) generating 
+ * Analogy: Like a template engine (Thymeleaf/FreeMarker) generating
  * custom CSS based on a Java Map.
  */
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
@@ -154,10 +154,10 @@ const ChartTooltip = RechartsPrimitive.Tooltip
 /**
  * ChartTooltipContent: The "View Renderer" for the chart's hover tooltip.
  * It decides how each data point in the tooltip looks.
- * 
- * useMemo: Caching / Lazy Initialization. 
- * Analogy: Like a @Cacheable method or a field that is initialized only when 
- * its dependencies change. This prevents recalculating the tooltip label on 
+ *
+ * useMemo: Caching / Lazy Initialization.
+ * Analogy: Like a @Cacheable method or a field that is initialized only when
+ * its dependencies change. This prevents recalculating the tooltip label on
  * every frame of an animation unless the data actually changes.
  */
 function ChartTooltipContent({
@@ -241,7 +241,7 @@ function ChartTooltipContent({
         {payload
           .filter((item) => item.type !== "none")
           /**
-           * Java Analogy: Stream API. 
+           * Java Analogy: Stream API.
            * .filter(...) -> filters out unwanted items.
            * .map(...) -> transforms each data point into a UI component (React element).
            */
@@ -331,7 +331,7 @@ function ChartLegendContent({
 }: React.ComponentProps<"div"> & {
     hideIcon?: boolean
     nameKey?: string
-    payload?: any[]
+  payload?: RechartsPrimitive.LegendProps["payload"]
     verticalAlign?: "top" | "bottom"
   }) {
   const { config } = useChart()
@@ -351,7 +351,7 @@ function ChartLegendContent({
       {payload
         .filter((item) => item.type !== "none")
         /**
-         * Same as Tooltip: Transform the list of data series into 
+         * Same as Tooltip: Transform the list of data series into
          * legend items using a pattern similar to Java Streams.
          */
         .map((item) => {

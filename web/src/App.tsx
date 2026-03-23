@@ -47,20 +47,18 @@ import {Bar, BarChart as RechartsBarChart, XAxis, YAxis} from "recharts"
 // records/interfaces that only exist during compilation for safety.
 //
 // Q: Why not use 'class'?
-// A: Java developers often reach for classes here. However, in React, we prefer 
+// A: Java developers often reach for classes here. However, in React, we prefer
 //    Plain Old Data (POJO equivalent but simpler). Classes with internal methods
 //    break React's immutability patterns and 'useState' re-renders.
 //    Stick to 'type' or 'interface' for data models!
-type ApiResponse<T> = { data: T }
+type TotalRevenueResponse = { totalRevenue: number }
+type SubscriptionsResponse = { subscriptions: number }
+type SalesResponse = { sales: number }
+type ActiveNowResponse = { activeNow: number }
+type RecentSalesResponse = { recentSales: RecentSale[] }
 type SeriesPoint = { label: string; value: number }
 type RecentSale = { name: string; email: string; amount: number; initials: string }
-type MonthlyRevenueData = {
-  totalRevenue: number
-  subscriptions: number
-  sales: number
-  activeNow: number
-  revenueSeries: SeriesPoint[]
-}
+type RevenueSeriesResponse = { revenueSeries: SeriesPoint[] }
 
 /**
  * [ROOT COMPONENT] App
@@ -77,8 +75,8 @@ type MonthlyRevenueData = {
  *   then passes that data down as "props" to "Dumb" (Presentation) components
  *   like `StatCard` or `BarChart`.
  *
- * - Structure Note for Java Developers: 
- *   We don't have separate 'Controller' and 'View' files. React components 
+ * - Structure Note for Java Developers:
+ *   We don't have separate 'Controller' and 'View' files. React components
  *   colocate UI (JSX) and Logic (hooks) in the same file to keep them in sync.
  */
 export default function App() {
@@ -162,29 +160,33 @@ export default function App() {
      * - In production-grade apps, add schema validation for external data.
      */
     Promise.all([
-      fetch("/api/monthly-revenue").then((r) => r.json() as Promise<ApiResponse<MonthlyRevenueData>>),
-      fetch("/api/recent-sales").then((r) => r.json() as Promise<ApiResponse<RecentSale[]>>),
+      fetch("/api/total-revenue").then((r) => r.json() as Promise<TotalRevenueResponse>),
+      fetch("/api/subscriptions").then((r) => r.json() as Promise<SubscriptionsResponse>),
+      fetch("/api/sales").then((r) => r.json() as Promise<SalesResponse>),
+      fetch("/api/active-now").then((r) => r.json() as Promise<ActiveNowResponse>),
+      fetch("/api/revenue-series").then((r) => r.json() as Promise<RevenueSeriesResponse>),
+      fetch("/api/recent-sales").then((r) => r.json() as Promise<RecentSalesResponse>),
     ])
       /**
-       * Q: What is this ([monthly, sales]) syntax?
+       * Q: What is this ([total, subs, ...]) syntax?
        * A: "Array Destructuring". Promise.all returns an array of results.
-       *    Instead of doing 'const monthly = results[0]', we extract them into
+       *    Instead of doing 'const total = results[0]', we extract them into
        *    named variables immediately. It's cleaner and more readable.
        */
-      .then(([monthly, sales]) => {
+        .then(([total, subs, salesCount, active, seriesData, recentSalesData]) => {
         /**
          * [STATE BATCHING]
          * In React 18+, multiple state updates within the same event/promise
          * are "batched" together. This means the component only re-renders
-         * ONCE after all `set...` calls are finished, which is a big
+         * ONCE after all six `set...` calls are finished, which is a big
          * performance optimization.
          */
-        setTotalRevenue(monthly.data.totalRevenue)
-        setSubscriptions(monthly.data.subscriptions)
-        setSales(monthly.data.sales)
-        setActiveNow(monthly.data.activeNow)
-        setRevenueSeries(monthly.data.revenueSeries)
-        setRecentSales(sales.data)
+        setTotalRevenue(total.totalRevenue)
+          setSubscriptions(subs.subscriptions)
+          setSales(salesCount.sales)
+          setActiveNow(active.activeNow)
+          setRevenueSeries(seriesData.revenueSeries)
+          setRecentSales(recentSalesData.recentSales)
       })
        .catch((e) => {
         // Error handling: similar to a try-catch block in Java.
@@ -491,7 +493,7 @@ function BarChart({ series }: { series: SeriesPoint[] }) {
   // ChartContainer provides consistent theming and responsive sizing; we only supply the data
   // array, similar to passing a `List<Point>` into a charting library in JavaFX/Swing.
   return (
-    <ChartContainer config={chartConfig} className="h-[300px] w-full">
+      <ChartContainer config={chartConfig} className="h-75 w-full">
       <RechartsBarChart
         data={series}
         margin={{
