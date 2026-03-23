@@ -112,7 +112,7 @@ export default function App() {
   const [recentSales, setRecentSales] = useState<RecentSale[]>([])
 
   /**
-   * [DATA FETCHING] useEffect
+   * [DATA FETCHING] useEffect with Auto-Refresh
    *
    * React provides a built-in `fetch` function (similar to `HttpClient` in Java)
    * to make HTTP requests.
@@ -139,6 +139,15 @@ export default function App() {
    *   when the component mounts. Without it (or with a dependency that changes),
    *   you could end up in an infinite loop:
    *   (Fetch -> Update State -> Re-render -> Fetch again...).
+   *
+   * Auto-Refresh Pattern:
+   * - `fetchDashboard` is extracted as a named inner function so it can be
+   *   called both immediately on mount AND on a recurring interval — similar
+   *   to a `ScheduledExecutorService` in Java.
+   * - `setInterval` schedules the function every REFRESH_INTERVAL_MS.
+   * - The cleanup function returned from useEffect calls `clearInterval`,
+   *   which is like calling `scheduler.shutdown()` when the component
+   *   unmounts, preventing memory leaks and stale updates.
    */
   useEffect(() => {
     /**
@@ -159,39 +168,49 @@ export default function App() {
      * - `as` is compile-time only; it does NOT validate runtime JSON.
      * - In production-grade apps, add schema validation for external data.
      */
-    Promise.all([
-      fetch("/api/total-revenue").then((r) => r.json() as Promise<TotalRevenueResponse>),
-      fetch("/api/subscriptions").then((r) => r.json() as Promise<SubscriptionsResponse>),
-      fetch("/api/sales").then((r) => r.json() as Promise<SalesResponse>),
-      fetch("/api/active-now").then((r) => r.json() as Promise<ActiveNowResponse>),
-      fetch("/api/revenue-series").then((r) => r.json() as Promise<RevenueSeriesResponse>),
-      fetch("/api/recent-sales").then((r) => r.json() as Promise<RecentSalesResponse>),
-    ])
-      /**
-       * Q: What is this ([total, subs, ...]) syntax?
-       * A: "Array Destructuring". Promise.all returns an array of results.
-       *    Instead of doing 'const total = results[0]', we extract them into
-       *    named variables immediately. It's cleaner and more readable.
-       */
+    const REFRESH_INTERVAL_MS = 5_000 // Refresh every 5 seconds
+
+    const fetchDashboard = () =>
+        Promise.all([
+          fetch("/api/total-revenue").then((r) => r.json() as Promise<TotalRevenueResponse>),
+          fetch("/api/subscriptions").then((r) => r.json() as Promise<SubscriptionsResponse>),
+          fetch("/api/sales").then((r) => r.json() as Promise<SalesResponse>),
+          fetch("/api/active-now").then((r) => r.json() as Promise<ActiveNowResponse>),
+          fetch("/api/revenue-series").then((r) => r.json() as Promise<RevenueSeriesResponse>),
+          fetch("/api/recent-sales").then((r) => r.json() as Promise<RecentSalesResponse>),
+        ])
+            /**
+             * Q: What is this ([total, subs, ...]) syntax?
+             * A: "Array Destructuring". Promise.all returns an array of results.
+             *    Instead of doing 'const total = results[0]', we extract them into
+             *    named variables immediately. It's cleaner and more readable.
+             */
         .then(([total, subs, salesCount, active, seriesData, recentSalesData]) => {
-        /**
-         * [STATE BATCHING]
-         * In React 18+, multiple state updates within the same event/promise
-         * are "batched" together. This means the component only re-renders
-         * ONCE after all six `set...` calls are finished, which is a big
-         * performance optimization.
-         */
-        setTotalRevenue(total.totalRevenue)
+          /**
+           * [STATE BATCHING]
+           * In React 18+, multiple state updates within the same event/promise
+           * are "batched" together. This means the component only re-renders
+           * ONCE after all six `set...` calls are finished, which is a big
+           * performance optimization.
+           */
+          setTotalRevenue(total.totalRevenue)
           setSubscriptions(subs.subscriptions)
           setSales(salesCount.sales)
           setActiveNow(active.activeNow)
           setRevenueSeries(seriesData.revenueSeries)
           setRecentSales(recentSalesData.recentSales)
-      })
-       .catch((e) => {
-        // Error handling: similar to a try-catch block in Java.
-        console.error("Failed to fetch dashboard data:", e)
-      })
+        })
+            .catch((e) => {
+              // Error handling: similar to a try-catch block in Java.
+              console.error("Failed to fetch dashboard data:", e)
+            })
+
+    fetchDashboard() // Fetch immediately on mount
+    const intervalId = setInterval(fetchDashboard, REFRESH_INTERVAL_MS)
+
+    // Cleanup: cancel the interval when the component unmounts.
+    // Like calling scheduler.shutdown() in Java to avoid resource leaks.
+    return () => clearInterval(intervalId)
   }, []) // Empty dependency array = "Run on start only"
 
   /**

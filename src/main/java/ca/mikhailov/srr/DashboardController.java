@@ -1,5 +1,7 @@
 package ca.mikhailov.srr;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -7,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 /**
  * [BACKEND CONTROLLER] DashboardController
@@ -29,6 +32,23 @@ import java.util.List;
 @RequestMapping("/api")
 public class DashboardController {
 
+    private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
+    private final Random random = new Random();
+
+    /**
+     * Returns a value jittered by up to ±{@code pct}% of the base.
+     */
+    private double jitter(double base, double pct) {
+        return base + base * pct * (random.nextDouble() * 2 - 1);
+    }
+
+    /**
+     * Integer variant — rounds the jittered result.
+     */
+    private int jitterInt(int base, double pct) {
+        return (int) Math.round(jitter(base, pct));
+    }
+
     /**
      * [ENDPOINT] getRevenueSeries
      *
@@ -40,18 +60,18 @@ public class DashboardController {
     @GetMapping("/revenue-series")
     public ResponseEntity<RevenueSeriesResponse> getRevenueSeries() {
         List<SeriesPoint> series = Arrays.asList(
-                new SeriesPoint("Jan", 12000),
-                new SeriesPoint("Feb", 14500),
-                new SeriesPoint("Mar", 13800),
-                new SeriesPoint("Apr", 16000),
-                new SeriesPoint("May", 17500),
-                new SeriesPoint("Jun", 18200),
-                new SeriesPoint("Jul", 19000),
-                new SeriesPoint("Aug", 20500),
-                new SeriesPoint("Sep", 19800),
-                new SeriesPoint("Oct", 21000),
-                new SeriesPoint("Nov", 20500),
-                new SeriesPoint("Dec", 21500)
+                new SeriesPoint("Jan", jitter(11340, 0.05)),
+                new SeriesPoint("Feb", jitter(13870, 0.05)),
+                new SeriesPoint("Mar", jitter(12950, 0.05)),
+                new SeriesPoint("Apr", jitter(15420, 0.05)),
+                new SeriesPoint("May", jitter(16780, 0.05)),
+                new SeriesPoint("Jun", jitter(19310, 0.05)),
+                new SeriesPoint("Jul", jitter(18640, 0.05)),
+                new SeriesPoint("Aug", jitter(21070, 0.05)),
+                new SeriesPoint("Sep", jitter(20130, 0.05)),
+                new SeriesPoint("Oct", jitter(22480, 0.05)),
+                new SeriesPoint("Nov", jitter(21690, 0.05)),
+                new SeriesPoint("Dec", jitter(23150, 0.05))
         );
 
         return ResponseEntity.ok(new RevenueSeriesResponse(series));
@@ -65,7 +85,7 @@ public class DashboardController {
      */
     @GetMapping("/total-revenue")
     public ResponseEntity<TotalRevenueResponse> getTotalRevenue() {
-        return ResponseEntity.ok(new TotalRevenueResponse(45231.89));
+        return ResponseEntity.ok(new TotalRevenueResponse(Math.round(jitter(47392.15, 0.05) * 100.0) / 100.0));
     }
 
     /**
@@ -76,7 +96,7 @@ public class DashboardController {
      */
     @GetMapping("/subscriptions")
     public ResponseEntity<SubscriptionsResponse> getSubscriptions() {
-        return ResponseEntity.ok(new SubscriptionsResponse(2350));
+        return ResponseEntity.ok(new SubscriptionsResponse(jitterInt(2418, 0.05)));
     }
 
     /**
@@ -87,7 +107,7 @@ public class DashboardController {
      */
     @GetMapping("/sales")
     public ResponseEntity<SalesResponse> getSalesCount() {
-        return ResponseEntity.ok(new SalesResponse(12234));
+        return ResponseEntity.ok(new SalesResponse(jitterInt(11876, 0.05)));
     }
 
     /**
@@ -98,7 +118,7 @@ public class DashboardController {
      */
     @GetMapping("/active-now")
     public ResponseEntity<ActiveNowResponse> getActiveNow() {
-        return ResponseEntity.ok(new ActiveNowResponse(573));
+        return ResponseEntity.ok(new ActiveNowResponse(jitterInt(641, 0.08)));
     }
 
     /**
@@ -110,11 +130,11 @@ public class DashboardController {
     @GetMapping("/recent-sales")
     public ResponseEntity<RecentSalesResponse> getRecentSales() {
         return ResponseEntity.ok(new RecentSalesResponse(Arrays.asList(
-                new RecentSale("Olivia Martin", "olivia.martin@example.com", 1500, "OM"),
-                new RecentSale("Jackson Lee", "jackson.lee@example.com", 1200, "JL"),
-                new RecentSale("Isabella Nguyen", "isabella.nguyen@example.com", 900, "IN"),
-                new RecentSale("William Kim", "william.kim@example.com", 750, "WK"),
-                new RecentSale("Sofia Davis", "sofia.davis@example.com", 600, "SD")
+                new RecentSale("Olivia Martin", "olivia.martin@example.com", Math.round(jitter(1382.50, 0.05) * 100) / 100.0, "OM"),
+                new RecentSale("Jackson Lee", "jackson.lee@example.com", Math.round(jitter(1175.00, 0.05) * 100) / 100.0, "JL"),
+                new RecentSale("Isabella Nguyen", "isabella.nguyen@example.com", Math.round(jitter(947.80, 0.05) * 100) / 100.0, "IN"),
+                new RecentSale("William Kim", "william.kim@example.com", Math.round(jitter(713.25, 0.05) * 100) / 100.0, "WK"),
+                new RecentSale("Sofia Davis", "sofia.davis@example.com", Math.round(jitter(628.40, 0.05) * 100) / 100.0, "SD")
         )));
     }
 
