@@ -100,7 +100,7 @@ export default function App() {
    *    This creates a *new* reference, which React detects and triggers a re-render.
    *
    * Q: Why the generic <number> or <SeriesPoint[]>?
-   * A: TypeScript is "Staticly Typed". Just like 'List<String>' in Java, this
+   * A: TypeScript is "Statically Typed". Just like 'List<String>' in Java, this
    *    ensures that we don't accidentally put a string into a numeric state,
    *    preventing runtime 'NaN' or 'undefined' errors.
    */
