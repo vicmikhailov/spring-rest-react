@@ -13,20 +13,20 @@ import java.util.Random;
 
 /**
  * [BACKEND CONTROLLER] DashboardController
- *
+ * <p>
  * This Spring Boot RestController provides the data for the React frontend.
- *
+ * <p>
  * Python Analogy:
  * - This is like a FastAPI `APIRouter` or Flask `Blueprint`.
  * - `@RequestMapping("/api")` is the `prefix="/api"`.
- *
+ * <p>
  * TypeScript Analogy:
  * - This is like a NestJS `@Controller('/api')` or an Express `Router`.
- *
+ * <p>
  * 🚫 Antipattern: Breaking the Contract
- *    Changing a field name here (e.g., `totalRevenue` -> `revenue`) without
- *    updating the frontend `type` definitions will cause the UI to break
- *    silently, showing `undefined` or `NaN`.
+ * Changing a field name here (e.g., `totalRevenue` -> `revenue`) without
+ * updating the frontend `type` definitions will cause the UI to break
+ * silently, showing `undefined` or `NaN`.
  */
 @RestController
 @RequestMapping("/api")
@@ -51,9 +51,9 @@ public class DashboardController {
 
     /**
      * [ENDPOINT] getRevenueSeries
-     *
+     * <p>
      * Returns the monthly revenue series data points for the chart.
-     *
+     * <p>
      * Python Analogy: `@app.get("/revenue-series")` (FastAPI)
      * TypeScript Analogy: `@Get('/revenue-series')` (NestJS) or `router.get('/revenue-series', ...)` (Express)
      */
@@ -79,7 +79,7 @@ public class DashboardController {
 
     /**
      * [ENDPOINT] getTotalRevenue
-     *
+     * <p>
      * Returns the total revenue as a double.
      * Python/TS Analogy: GET /api/total-revenue -> number
      */
@@ -90,7 +90,7 @@ public class DashboardController {
 
     /**
      * [ENDPOINT] getSubscriptions
-     *
+     * <p>
      * Returns the total number of subscriptions.
      * Python/TS Analogy: GET /api/subscriptions -> number
      */
@@ -101,7 +101,7 @@ public class DashboardController {
 
     /**
      * [ENDPOINT] getSalesCount
-     *
+     * <p>
      * Returns the total number of sales.
      * Python/TS Analogy: GET /api/sales -> number
      */
@@ -112,7 +112,7 @@ public class DashboardController {
 
     /**
      * [ENDPOINT] getActiveNow
-     *
+     * <p>
      * Returns the number of currently active users.
      * Python/TS Analogy: GET /api/active-now -> number
      */
@@ -123,7 +123,7 @@ public class DashboardController {
 
     /**
      * [ENDPOINT] getRecentSales
-     *
+     * <p>
      * Returns a list of recent sale transactions.
      * Python/TS Analogy: GET /api/recent-sales -> Array<{ name, email, amount, initials }>
      */
@@ -140,17 +140,17 @@ public class DashboardController {
 
     /**
      * [DTO] ApiResponse
-     *
+     * <p>
      * A generic wrapper for all API responses to ensure a consistent JSON structure.
-     *
+     * <p>
      * React Analogy:
      * - These match the `type` definitions at the top of `web/src/App.tsx`.
      * - `SeriesPoint` matches `type SeriesPoint = { label: string; value: number }`
-     *
+     * <p>
      * Individual response records:
      * - Each endpoint has its own dedicated response record instead of a shared
-     *   generic wrapper. This makes each contract explicit and independently
-     *   evolvable without affecting other endpoints.
+     * generic wrapper. This makes each contract explicit and independently
+     * evolvable without affecting other endpoints.
      */
     public record TotalRevenueResponse(double totalRevenue) {
     }
@@ -169,25 +169,27 @@ public class DashboardController {
 
     /**
      * [DTO] SeriesPoint
-     *
+     * <p>
      * Represents a single data point in a chart (e.g., Month and Value).
      * Python Analogy: `@dataclass class SeriesPoint: label: str; value: float`
      * TypeScript Analogy: `type SeriesPoint = { label: string; value: number }`
      */
-    public record SeriesPoint(String label, double value) {}
+    public record SeriesPoint(String label, double value) {
+    }
 
     /**
      * [DTO] RecentSale
-     *
+     * <p>
      * Represents a single sale record in the "Recent Sales" list.
      * Python Analogy: `class RecentSale(BaseModel): name: str; email: str; amount: float; initials: str`
      * TypeScript Analogy: `type RecentSale = { name: string; email: string; amount: number; initials: string }`
      */
-    public record RecentSale(String name, String email, double amount, String initials) {}
+    public record RecentSale(String name, String email, double amount, String initials) {
+    }
 
     /**
      * [DTO] RevenueSeriesResponse
-     *
+     * <p>
      * Response record for the /api/revenue-series endpoint.
      * Python Analogy: `class RevenueSeriesResponse(BaseModel): revenueSeries: list[SeriesPoint]`
      * TypeScript Analogy: `type RevenueSeriesResponse = { revenueSeries: SeriesPoint[] }`
