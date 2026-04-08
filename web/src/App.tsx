@@ -25,6 +25,13 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import {Separator} from "@/components/ui/separator"
+/**
+ * [LIBRARIES]
+ * 
+ * Lucide React: A library of SVG icons. Think of these as a modern replacement 
+ * for icon fonts. They are lightweight and tree-shakeable (meaning only the icons 
+ * you use are included in the final JS bundle).
+ */
 import {
   Activity,
   Bell,
@@ -39,6 +46,11 @@ import {
   Settings,
   Users,
 } from "lucide-react"
+/**
+ * Recharts: A charting library built on top of D3.js. 
+ * Unlike low-level D3, Recharts provides high-level components like <BarChart />, 
+ * making it feel much more like building UI than drawing pixels.
+ */
 import {Bar, BarChart as RechartsBarChart, XAxis, YAxis} from "recharts"
 
 // [TYPES VS RUNTIME]
@@ -51,6 +63,15 @@ import {Bar, BarChart as RechartsBarChart, XAxis, YAxis} from "recharts"
 //    Plain Old Data (POJO equivalent but simpler). Classes with internal methods
 //    break React's immutability patterns and 'useState' re-renders.
 //    Stick to 'type' or 'interface' for data models!
+//
+// 🚫 Java-ism Trap: Using 'class' for POJOs
+//    In Java, you use classes for everything. In React, classes carry 
+//    methods and private state that break referential equality checks 
+//    and serialization. Always use 'type' or 'interface' for data.
+//
+// 🚫 Antipattern: Using 'any'
+//    Avoid `const [data, setData] = useState<any>()`. It disables type safety,
+//    essentially reverting back to plain JavaScript. Always define your shapes!
 type TotalRevenueResponse = { totalRevenue: number }
 type SubscriptionsResponse = { subscriptions: number }
 type SalesResponse = { sales: number }
@@ -78,6 +99,11 @@ type RevenueSeriesResponse = { revenueSeries: SeriesPoint[] }
  * - Structure Note for Java Developers:
  *   We don't have separate 'Controller' and 'View' files. React components
  *   colocate UI (JSX) and Logic (hooks) in the same file to keep them in sync.
+ * 
+ * - Component Types: We use **Functional Components** here. While React used to
+ *   support class-based components (similar to `extends JPanel`), the modern 
+ *   standard is to use functions. They are simpler, easier to test, and 
+ *   optimized better by the React engine.
  */
 export default function App() {
   /**
@@ -105,6 +131,10 @@ export default function App() {
    *    preventing runtime 'NaN' or 'undefined' errors.
    */
   const [totalRevenue, setTotalRevenue] = useState<number | undefined>()
+  // 🚫 Java-ism Trap: Undefined vs Null
+  // In Java, we'd use 'null'. In JS/TS, 'undefined' is the idiomatic default 
+  // for "not yet loaded". It works better with optional chaining (?.) 
+  // and default parameters.
   const [subscriptions, setSubscriptions] = useState<number | undefined>()
   const [sales, setSales] = useState<number | undefined>()
   const [activeNow, setActiveNow] = useState<number | undefined>()
@@ -159,6 +189,10 @@ export default function App() {
      *    fire them all. The UI only waits for the slowest request, not the
      *    sum of all requests.
      *
+     * Java Analogy: `CompletableFuture.allOf(...)`. It's a "Fork-Join" 
+     * pattern where we fork multiple requests and join them into a 
+     * single result array.
+     *
      * Q: Why the 'as Promise<...>' cast?
      * A: 'fetch' returns a generic JSON object. TypeScript doesn't know the
      *    shape of your API response. This cast is like telling the compiler:
@@ -192,6 +226,11 @@ export default function App() {
            * are "batched" together. This means the component only re-renders
            * ONCE after all six `set...` calls are finished, which is a big
            * performance optimization.
+           * 
+           * 🚫 Java-ism Trap: Thread Blocking
+           * This code is asynchronous but NOT multithreaded. While 'await' 
+           * or '.then()' is waiting, the browser's single thread is free to 
+           * handle clicks and animations.
            */
           setTotalRevenue(total.totalRevenue)
           setSubscriptions(subs.subscriptions)
@@ -234,6 +273,21 @@ export default function App() {
    *   - `gap-4`: Spacing between child elements
    *   - `md:grid-cols-2`: "Medium" screens (and up) should have 2 columns.
    *     This is "Responsive Design".
+   *
+   *   Naming Strategy for Backend Developers:
+   *   Tailwind classes follow a predictable `prefix-value` or `prefix-property-value` pattern:
+   *   - [p]-4: **P**adding (all sides)
+   *   - [m]l-2: **M**argin **L**eft
+   *   - [w]-full: **W**idth 100%
+   *   - [h]-screen: **H**eight 100% of viewport
+   *   - [text]-red-500: **Text** color
+   *   - [bg]-blue-100: **B**ack**g**round color
+   *   - [items]-center: Align **items** along the cross-axis (vertical if flex-row)
+   *   - [justify]-between: **Justify** content along the main-axis (horizontal if flex-row)
+   *
+   *   Q: Why use this instead of separate CSS files?
+   *   A: It eliminates "dead CSS," speeds up development by avoiding context switching
+   *      between files, and ensures your UI stays consistent with the design system.
    */
   // SidebarProvider is a context (like a scoped Spring ApplicationContext) that shares
   // sidebar open/close state with nested components without prop-drilling.
@@ -289,8 +343,16 @@ export default function App() {
             <StatCard
               title="Total Revenue"
               icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
-              // `??` is used to keep the seeded demo value visible while real data loads.
-              // Unlike `||`, it preserves '0' as a valid value if the real data is zero.
+              /**
+               * [NULLISH COALESCING] ??
+               * 
+               * Java Analogy: `Optional.ofNullable(totalRevenue).orElse(45231.89)`
+               * 
+               * Q: Why not use `||`?
+               * A: `||` is "Logical OR". It falls back on ANY falsy value (0, "", false).
+               *    `??` only falls back on `null` or `undefined`. 
+               *    If your revenue is exactly 0, you want to show 0, not the demo value!
+               */
               value={formatCurrency(totalRevenue ?? 45231.89)}
               description="+20.1% from last month"
             />
@@ -314,10 +376,9 @@ export default function App() {
             />
           </div>
 
-          {/* Charts Section */}
+            {/* [LAYOUT] grid: 2D layout (rows/cols). md:grid-cols-2: 2 cols on medium screens. lg:grid-cols-7: 7 cols on large screens. */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            {/* Tailwind classes compose layout (grid/flex/gap) inline; think of them as
-                pre-baked utility methods instead of writing a separate CSS file. */}
+            {/* [LAYOUT] col-span-X: How many columns this element should occupy in the grid. */}
             <Card className="lg:col-span-4 md:col-span-2">
               <CardHeader>
                 <div>
@@ -342,32 +403,30 @@ export default function App() {
               </CardHeader>
               <CardContent>
                 {/* [LIST RENDERING] array.map()
-                    Similar to a for-each loop in Java, but it must return a UI element.
-                    `key` prop is MANDATORY for React to track item changes in lists.
+                    
+                    Java Analogy: `list.stream().map(s -> renderItem(s)).toList()`
+                    
+                    In React, we use `map()` to transform data objects into UI elements.
+                    React handles the "Collection" rendering automatically—you just 
+                    provide the template for a single item.
+                    
+                    🚫 Java-ism Trap: Missing 'key'
+                    `key` prop is MANDATORY. Think of it like `equals()` and `hashCode()`.
+                    It tells React: "This UI element belongs to this specific data item." 
+                    If the data moves, React moves the UI instead of re-creating it.
                 */}
                 <ul className="space-y-4">
                   {/**
-                   * Q: Why .map() and not a for-loop?
-                   * A: React is functional. .map() transforms data directly into
-                   *    UI elements. It's more declarative than a manual loop.
-                   *
-                   * 🚫 Antipattern: Using Array Index as Key
-                   *    `recentSales.map((s, index) => <li key={index}>...</li>)`
-                   *    This is "dangerous". If the order of the items changes,
-                   *    React gets confused and might map the wrong state/focus
-                   *    to the wrong DOM element.
-                   *
-                   * ✅ Correct: Using a Unique Stable ID
-                   *    `key={s.email}` or `key={s.id}`
-                   *    This ensures React can track the same entity across
-                   *    different renders, even if it moves in the array.
-                   */
-                  recentSales.map((s) => (
+                   * [LAYOUT] flex: 1D layout. items-center: vertical alignment. gap-3: spacing.
+                   */}
+                  {recentSales.map((s) => (
                     <li key={s.email} className="flex items-center gap-3">
                       <Avatar className="h-9 w-9">
                         <AvatarFallback>{s.initials}</AvatarFallback>
                       </Avatar>
+                      {/* [LAYOUT] flex-1: grow to fill space. min-w-0: allow shrinking for 'truncate' to work. */}
                       <div className="min-w-0 flex-1">
+                        {/* [TYPOGRAPHY] truncate: add "..." if text is too long. leading-none: zero line-height. */}
                         <p className="truncate text-sm font-medium leading-none">{s.name}</p>
                         <p className="truncate text-xs text-muted-foreground">{s.email}</p>
                       </div>
@@ -385,15 +444,23 @@ export default function App() {
 }
 
 /**
- * [SIDEBAR COMPONENT]
+ * [SIDEBAR COMPONENT] AppSidebar
  *
  * Demonstrates basic layout components from the UI library.
+ * 
+ * Pattern: "Compound Components"
+ * In Java, you might have `sidebar.setHeader(...)`, `sidebar.setContent(...)`. 
+ * In React, we use nested components: `<Sidebar><SidebarHeader /></Sidebar>`. 
+ * This is more flexible as you can easily rearrange elements in the JSX 
+ * without changing any Java-side configuration.
  */
 function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
+        {/* [LAYOUT] px-4: horizontal padding. h-12: fixed height (3rem/48px). */}
         <div className="flex h-12 items-center px-4">
+          {/* [TYPOGRAPHY] tracking-tight: reduced letter spacing. font-semibold: weight 600. */}
           <div className="text-xl font-semibold tracking-tight">Acme Dashboard</div>
         </div>
       </SidebarHeader>
@@ -450,6 +517,10 @@ function AppSidebar() {
  * - Java Analogy:
  *   `public String StatCard(StatCardDTO props) { ... }`
  *
+ * - Props are "Read-Only": In React, you NEVER modify the props passed into
+ *   a component. If you need to change something, you pass a new value from
+ *   the parent. This is "One-Way Data Flow", a core principle of React.
+ *
  * @param props
  *  - title: The label for the card (e.g. "Total Revenue")
  *  - icon: A Lucide-react component passed as a JSX element
@@ -464,12 +535,14 @@ function StatCard({ title, icon, value, description }: { title: string; icon?: R
   return (
     <Card>
       <CardHeader>
+        {/* [LAYOUT] items-center: vertical align. justify-between: space-out children. */}
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
           {icon}
         </div>
       </CardHeader>
       <CardContent>
+        {/* [TYPOGRAPHY] text-2xl: large font. font-bold: weight 700. */}
         <div className="text-2xl font-bold">{value}</div>
         {/**
          * [CONDITIONAL RENDERING]
@@ -479,6 +552,7 @@ function StatCard({ title, icon, value, description }: { title: string; icon?: R
          * Java Analogy:
          * if (description != null) { render(description); }
          */}
+        {/* [COLORS] text-muted-foreground: use the theme's secondary text color. */}
         {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
       </CardContent>
     </Card>
@@ -494,6 +568,15 @@ function StatCard({ title, icon, value, description }: { title: string; icon?: R
  * Pattern: "Configuration Object"
  * We use a `chartConfig` object to centralize styles and labels for
  * the chart, which keeps the JSX cleaner.
+ * 
+ * For Java Developers:
+ * - Think of `RechartsBarChart` as the 'Engine' and `Bar`, `XAxis`, `YAxis` 
+ *   as 'Layers' you add to it. It's very similar to constructing a complex 
+ *   Swing/JavaFX component by adding child nodes.
+ * 
+ * - `dataKey="value"`: This tells Recharts which field in your `SeriesPoint` 
+ *   objects (e.g., `{ label: 'Jan', value: 100 }`) should be used for the 
+ *   height of the bars.
  *
  * Q: What does 'satisfies ChartConfig' do?
  * A: It's "Type Validation without Widening". It checks that 'chartConfig'
@@ -554,6 +637,11 @@ function BarChart({ series }: { series: SeriesPoint[] }) {
  * - This is exactly like using `java.text.NumberFormat.getCurrencyInstance(Locale.US)`.
  * - `toLocaleString` is a built-in method in JavaScript for internationalization,
  *   similar to `Locale`-based formatting in Java.
+ * 
+ * 🚫 Antipattern: Formatting in the Render Cycle
+ *    Don't do complex string manipulation directly inside your JSX tags.
+ *    Extract them into helper functions like this to keep your UI logic 
+ *    clean and testable.
  */
 function formatCurrency(v: number) {
   return v.toLocaleString(undefined, {

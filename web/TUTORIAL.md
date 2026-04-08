@@ -381,6 +381,54 @@ Key Takeaway:
 
 ---
 
+### 3.12 Array Methods vs. Java Streams
+
+In Java, you use the **Stream API** to process collections. In JavaScript/TypeScript, these operations are built directly into the **Array prototype**.
+
+| Operation | Java Stream | JavaScript Array |
+| :--- | :--- | :--- |
+| **Transform** | `.map(x -> x + 1)` | `.map(x => x + 1)` |
+| **Filter** | `.filter(x -> x > 0)` | `.filter(x => x > 0)` |
+| **Reduce** | `.reduce(0, Integer::sum)` | `.reduce((acc, x) => acc + x, 0)` |
+| **First Match** | `.findFirst()` | `.find(x => x.id === id)` |
+| **Any Match** | `.anyMatch(x -> ...)` | `.some(x => ...)` |
+| **All Match** | `.allMatch(x -> ...)` | `.every(x => ...)` |
+| **Sort** | `.sorted()` | `.toSorted()` (or `[...arr].sort()`) |
+| **Collect** | `.toList()` | (Not needed, already an array) |
+
+#### Key Differences for Java Developers:
+1.  **Immediate vs. Lazy**: Java Streams are **lazy** (nothing happens until you call a terminal operation like `.collect()` or `.findFirst()`). JavaScript array methods are **eager**—each step creates a new array in memory.
+2.  **Terminal Operations**: In JS, you don't need a `collect()` step. `map()` and `filter()` return a new array immediately.
+3.  **Mutation**: Some JS methods like `sort()` and `reverse()` **mutate the original array** in place. In React, always use the non-mutating versions (`toSorted()`, `toReversed()`) or spread the array first: `[...myArray].sort()`.
+
+---
+
+### 3.13 Truthiness and Falsiness
+
+In Java, `if (x)` only works if `x` is a `boolean`. In JavaScript, **any value** can be evaluated in a boolean context.
+
+#### The "Falsy" Values (Evaluate to `false`):
+- `false`
+- `0` (and `-0`, `0n`)
+- `""` (empty string)
+- `null`
+- `undefined`
+- `NaN` (Not a Number)
+
+**Everything else is "Truthy"**, including `[]` (empty array) and `{}` (empty object)!
+
+#### 🚫 Java-ism Trap: `if (list.length)`
+In Java, you'd check `!list.isEmpty()`. In JS, developers often write `if (list.length)`. This works because if length is `0`, it's falsy; if it's `> 0`, it's truthy.
+
+#### ✅ Best Practice: Short-circuiting for UI
+We use this "truthiness" to conditionally render UI in React:
+```tsx
+{items.length > 0 && <List items={items} />}
+```
+*Note: Be careful with `0`. `{count && <Label />}` will render the number `0` on the screen if count is 0, because `0` is falsy but React renders it anyway. Use `count > 0 && ...` instead.*
+
+---
+
 ## 4. React Mental Model for Java Developers
 
 ### 4.1 Render, commit, and effects
@@ -446,6 +494,36 @@ For production-hardening, discuss schema validation (e.g., zod/io-ts) for untrus
 
 ---
 
+### 5.4 Async/Await: The `CompletableFuture` Killer
+
+If you're used to `CompletableFuture` or `Task` in Java, `async/await` will feel like magic. It allows you to write asynchronous code that **looks and reads like synchronous code**.
+
+#### Java Example (CompletableFuture)
+```java
+getUser(id)
+  .thenCompose(user -> getPosts(user))
+  .thenAccept(posts -> System.out.println(posts))
+  .exceptionally(ex -> { ... });
+```
+
+#### TypeScript Example (Async/Await)
+```ts
+async function showPosts(id: string) {
+  try {
+    const user = await getUser(id); // Execution "pauses" here (non-blocking)
+    const posts = await getPosts(user);
+    console.log(posts);
+  } catch (err) {
+    // Standard try/catch works for async errors!
+  }
+}
+```
+
+Key Takeaway:
+- "Under the hood, `await` is just syntax sugar for `.then()`. It makes complex asynchronous flows much easier to follow without 'Callback Hell'."
+
+---
+
 ## 6. CSS and Tailwind for Java Engineers
 
 ### 6.1 CSS cascade and specificity
@@ -482,6 +560,29 @@ This project uses CSS variables and shadcn/tailwind conventions.
 
 **Java analogy**: Similar to a `Theme` class or a centralized `Colors` constants file in a Java UI framework. Instead of repeating hex codes everywhere, you use variables like `var(--primary)`. Tailwind makes this easier by giving you classes like `text-primary`.
 
+### 6.5 Tailwind Class Name Cheat Sheet for Backend Developers
+
+Tailwind classes are utility-first, meaning each class does exactly one thing. They follow a consistent naming convention that you can often guess.
+
+| Concept | Tailwind Prefix | Example | CSS Equivalent |
+| :--- | :--- | :--- | :--- |
+| **Layout** | `flex`, `grid` | `flex` | `display: flex;` |
+| **Direction** | `flex-col` | `flex-col` | `flex-direction: column;` |
+| **Alignment** | `items-`, `justify-` | `items-center` | `align-items: center;` |
+| **Spacing** | `p-`, `m-`, `gap-` | `p-4` | `padding: 1rem;` (16px) |
+| **Width/Height** | `w-`, `h-` | `w-full` | `width: 100%;` |
+| **Typography** | `text-`, `font-` | `text-lg` | `font-size: 1.125rem;` |
+| **Colors** | `bg-`, `text-`, `border-` | `bg-blue-500` | `background-color: #3b82f6;` |
+| **Rounding** | `rounded-` | `rounded-md` | `border-radius: 0.375rem;` |
+
+**Pro-tips for Java devs:**
+- **Values are proportional**: `p-4` is `1rem` (usually 16px). `p-1` is `0.25rem` (4px). The scale is usually `value * 0.25rem`.
+- **Responsive prefixes**: Prepend `sm:`, `md:`, `lg:`, or `xl:` to any class to apply it only at that screen size and above.
+  - `hidden md:block`: Hidden by default (mobile), but `display: block` on medium screens and up.
+- **States**: Use `hover:`, `focus:`, or `active:` prefixes.
+  - `bg-blue-500 hover:bg-blue-700`: Changes background on hover.
+- **Negative values**: Add a `-` prefix, e.g., `-ml-1` for `margin-left: -0.25rem;`.
+
 ---
 
 ## 7. Walking Through Real Files
@@ -504,6 +605,32 @@ This project uses CSS variables and shadcn/tailwind conventions.
 Pro-tip:
 
 - "This frontend-backend pair relies on shared contract discipline; static typing helps but runtime contract tests are still valuable."
+
+---
+
+### 7.3 The Frontend Build Pipeline (Vite & Maven)
+
+#### 7.3.1 How "Imports" work for Assets
+
+In Java, you use `import` for code. In a Vite-powered project, you can `import` **CSS, images, and even SVGs** directly into your TypeScript files.
+
+```ts
+import "./styles.css"; // "Imports" the CSS so Vite bundles it
+import logo from "./logo.svg"; // Returns the URL to the asset
+```
+
+**How is this possible?**
+Vite (our build tool) intercepts these imports during the build process. 
+- For **CSS**: It injects the styles into the page automatically.
+- For **Images**: It gives you a string containing the path to the optimized image.
+
+#### 7.3.2 The Maven -> Vite Bridge
+
+When you run `./mvnw package`, the `frontend-maven-plugin` kicks in:
+1.  **Installs Node.js & pnpm**: Locally within the project (no global install needed).
+2.  **pnpm install**: Downloads frontend dependencies (like `node_modules` in Maven).
+3.  **pnpm build**: Runs Vite to compile TypeScript to JavaScript, process Tailwind CSS, and minify everything.
+4.  **Resource Copy**: The output is placed in `src/main/resources/static`, where Spring Boot picks it up to serve as static content.
 
 ---
 
@@ -554,9 +681,19 @@ Frontend development (especially with React and TypeScript) favors **functional 
 
 ### 10.1 Interfaces/Types vs. Classes
 
-In Java, everything is a class. In TypeScript, we use `interface` or `type` for data shapes (DTOs) and `functions` for logic.
+In Java, classes are the primary building block for both data and behavior. In TypeScript, we strictly separate **data shapes** (`interface` or `type`) from **logic** (`functions`).
 
-#### ❌ The "Java Way" (Antipattern in TS)
+#### Java Example (Typical Bean)
+```java
+class User {
+  private String name;
+  public User(String name) { this.name = name; }
+  public String getName() { return name; }
+  public void setName(String name) { this.name = name; }
+}
+```
+
+#### ❌ The TS "Java-ism" (Antipattern in TS/React)
 ```ts
 class User {
   private _name: string;
@@ -566,17 +703,45 @@ class User {
 }
 ```
 **Why this is bad in React**: 
-1. React's `useState` needs *new* object references to trigger a re-render. If you mutate `user.name`, React won't know it changed.
-2. Classes have hidden internal state and methods, which are hard to "serialize" when passing through props or storing in global state.
+1. **Mutation vs. Immutability**: React's `useState` needs *new* object references to trigger a re-render. If you mutate `user.name`, React won't know it changed.
+2. **Serialization**: `JSON.stringify(new User("Alice"))` works, but `JSON.parse` will return a *plain object*, not a `User` instance. You lose your methods and private fields immediately.
+3. **Boilerplate**: TypeScript interfaces/types provide the same safety with 90% less code.
 
 #### ✅ The "React/TS Way"
 ```ts
+// Plain objects (DTOs) use 'type' or 'interface'
 type User = { name: string }
 
 // Usage
 const [user, setUser] = useState<User>({ name: "Alice" });
+
+// 'Update' by creating a new object (like a Java Record copy)
 const updateName = (newName: string) => setUser({ ...user, name: newName });
 ```
+
+#### Comparison: Java Class vs. TS Type/Interface
+
+| Feature | Java Class | TS Type/Interface |
+| :--- | :--- | :--- |
+| **Runtime Presence** | Yes (Reflection works) | No (Type Erasure—vanishes in JS) |
+| **Instantiation** | `new MyClass()` | `{ name: "..." }` (Object Literal) |
+| **Methods** | Included in class | Defined separately as functions |
+| **Mapping JSON** | Needs Jackson/Gson | Automatic (just cast `as MyType`) |
+| **Primary Use** | Everything | DTOs, Props, API contracts |
+
+#### Quick Note: `interface` vs. `type`
+For Java developers:
+- `interface` is very similar to Java interfaces (can be extended, implemented).
+- `type` is more like a "Type Alias" or a more flexible version of an interface (can do unions like `string | number`).
+- **Convention**: In this project and many React apps, `type` is preferred for DTOs and Props.
+
+#### When to use `class` in TypeScript?
+Rarely. Use them only for:
+1.  **Custom Errors**: `class ApiError extends Error { ... }`
+2.  **Complex side-effectful state** (rare in React, maybe for a game engine or a complex WebSocket manager).
+3.  **Library Authors**: If you are building a tool like `TypeORM` or `Prisma`.
+
+*For 99% of your dashboard code: stick to `type` and `interface`.*
 
 ### 10.2 Getters and Setters
 
@@ -591,7 +756,15 @@ If you need a computed property, use a function or `useMemo` in a component, rat
 
 Java developers often create `DashboardService` classes with `private` members. In React, we use **Custom Hooks** or **exported functions**.
 
-#### ❌ The "Java Way" (Antipattern in TS)
+#### Java Example (Spring Service)
+```java
+@Service
+public class ApiService {
+  public static DashboardData fetchData() { /* ... */ }
+}
+```
+
+#### ❌ The TS "Java-ism" (Antipattern in TS)
 ```ts
 class ApiService {
   static async fetchData() { /* ... */ }
@@ -622,10 +795,22 @@ function useDashboardData() {
 
 In Java, you might use a lazy getter to avoid expensive calculations. In React, we use `useMemo`.
 
-#### ❌ The "Java Way" (Calculating during every render)
+#### Java Example (Lazy Getter)
+```java
+private List<Item> sortedItems;
+public List<Item> getSortedItems() {
+    if (sortedItems == null) {
+        sortedItems = list.stream().sorted().toList();
+    }
+    return sortedItems;
+}
+```
+
+#### ❌ The "Naive" Way (Recalculating during every render)
 ```ts
 function MyComponent({ list }) {
-  // This runs every time the component re-renders!
+  // 🚫 Mutation Trap: sort() mutates the original array in place!
+  // If 'list' comes from props, you just mutated the parent's data.
   const sorted = list.sort((a, b) => a.value - b.value); 
   return <div>{sorted.map(item => <span key={item.id}>{item.name}</span>)}</div>
 }
@@ -636,7 +821,8 @@ function MyComponent({ list }) {
 function MyComponent({ list }) {
   // Only re-runs if 'list' identity changes.
   const sorted = useMemo(() => {
-    return list.sort((a, b) => a.value - b.value);
+    // [...list] creates a shallow copy so we don't mutate the original
+    return [...list].sort((a, b) => a.value - b.value);
   }, [list]); 
 
   return <div>{sorted.map(item => <span key={item.id}>{item.name}</span>)}</div>
@@ -654,7 +840,7 @@ In Java, passing deep dependencies often involves many constructor arguments or 
 
 In Java, we often use CSS classes like `.dashboard-card` to group styles. In Tailwind, we use **utility classes** directly on elements.
 
-#### ❌ The "Java Way" (Trying to group in CSS)
+#### ❌ The Traditional CSS Way (Antipattern)
 ```css
 /* dashboard.css */
 .my-card {
@@ -676,7 +862,12 @@ If you need to reuse a complex set of classes, **create a React component** inst
 
 Java developers love `enum`. While TypeScript has `enum`, it has several quirks (like generating real JS objects and sometimes-broken reverse mapping).
 
-#### ❌ The "Java Way" (TS Enum)
+#### Java Example (Enum)
+```java
+public enum Status { IDLE, LOADING, SUCCESS }
+```
+
+#### ❌ The TS "Java-ism" (TS Enum)
 ```ts
 enum Status { IDLE, LOADING, SUCCESS }
 // Usage
@@ -698,7 +889,12 @@ In Java, `null` is the only way to represent "nothing." In TypeScript, we have b
 - **`null`**: An intentional absence of a value (e.g., "The user has no middle name").
 - **`undefined`**: A value hasn't been assigned yet (e.g., "The data hasn't loaded from the API yet").
 
-#### ❌ The "Java Way" (Null everything)
+#### Java Example (Null handling)
+```java
+User user = null;
+```
+
+#### ❌ The "Null-everywhere" Way
 ```ts
 const [data, setData] = useState<User | null>(null);
 ```
@@ -713,7 +909,14 @@ const [data, setData] = useState<User>(); // default is undefined
 
 Java developers often reach for `any` when they're frustrated with a complex type, treating it like `java.lang.Object`.
 
-#### ❌ The "Java Way" (Using `any`)
+#### Java Example (Using Object)
+```java
+public void handleData(Object data) {
+  // Hard to use without casting!
+}
+```
+
+#### ❌ The `any` Way
 ```ts
 function handleData(data: any) {
   console.log(data.name); // No compiler check!
@@ -729,6 +932,98 @@ function handleData(data: unknown) {
 }
 ```
 **Why**: `any` disables the compiler. `unknown` forces you to check the type before using it, preserving the safety you're used to in Java.
+
+### 10.10 The Equality Trap (`==` vs `===`)
+
+In Java, you use `==` for primitives and `.equals()` for objects. In JavaScript, `==` (Loose Equality) performs "type coercion" which leads to bizarre bugs.
+
+#### ❌ The "Loose" Way (Avoid)
+```ts
+0 == ""; // true (Wait, what?!)
+false == "0"; // true
+null == undefined; // true
+```
+
+#### ✅ The "Strict" Way (Always Use)
+```ts
+0 === ""; // false
+false === "0"; // false
+null === undefined; // false
+```
+**Java Analogy**: Always use `===`. It checks both **value and type**. It's the closest thing to a reliable `.equals()` check for primitives and simple values. For objects/arrays, `===` checks **referential equality** (same memory address), just like `==` does for objects in Java.
+
+### 10.11 The Truthiness Trap
+
+Java requires a strict `boolean` in `if` statements. JavaScript allows *anything*, and evaluates it as "truthy" or "falsy."
+
+#### ❌ The Confusion
+```ts
+if (0) { /* Won't run */ }
+if ("") { /* Won't run */ }
+if ([]) { /* WILL RUN! An empty array is truthy. */ }
+if ({}) { /* WILL RUN! An empty object is truthy. */ }
+```
+
+#### ✅ The "Explicit" Way
+```ts
+if (list.length > 0) { ... } // Better than if (list.length)
+if (name !== "") { ... }      // Better than if (name)
+```
+**Why**: Being explicit prevents bugs where `0` (a valid number) is accidentally treated as "no data."
+
+### 10.12 The Async/Await Trap (Promises != Threads)
+
+Java developers often think of `await` as blocking a thread. In JavaScript, there is only **one thread**.
+
+- **Java**: `Thread.sleep(1000)` stops everything on that thread.
+- **JavaScript**: `await delay(1000)` yields control back to the browser so it can stay responsive (handle clicks, animations) while waiting.
+
+#### ❌ The "Thread" Mental Model
+"If I have a long loop, `await` will make it run in the background." -> **False**. A `for` loop with 1 billion iterations will freeze the UI even if you use `async/await`. For heavy computation, you need Web Workers (equivalent to background threads).
+
+### 10.13 The "Deep Update" Trap (Immutability)
+
+Updating a nested field in a Java Bean is easy: `user.getAddress().setCity("Toronto")`. In React, you must clone every level.
+
+#### ❌ The Mutation (Won't trigger re-render)
+```ts
+user.address.city = "Toronto";
+setUser(user); 
+```
+
+#### ✅ The Functional Update
+```ts
+setUser({
+  ...user,
+  address: {
+    ...user.address,
+    city: "Toronto"
+  }
+});
+```
+**Pro-tip**: If your state has more than 2-3 levels of nesting, it's a sign you should **flatten your state** or use a library like `Immer`.
+
+### 10.14 The "Array Mutation" Trap
+
+In Java, `Collections.sort(list)` is common. In JavaScript, many array methods (like `sort`, `reverse`, `splice`) mutate the original array. In React, this is a disaster because it breaks state tracking.
+
+#### ❌ The Mutation (Bad)
+```ts
+const [items, setItems] = useState([3, 1, 2]);
+const handleSort = () => {
+  items.sort(); // Mutates the state directly!
+  setItems(items); // React thinks it's the same object reference, so no re-render.
+};
+```
+
+#### ✅ The Immutability (Good)
+```ts
+const handleSort = () => {
+  const sorted = [...items].sort(); // Copy first, then sort
+  setItems(sorted); // New reference triggers re-render
+};
+```
+**Analogy**: Always treat arrays in React state like **Unmodifiable Lists** in Java. If you want to change it, you must create a new one.
 
 ---
 

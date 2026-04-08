@@ -1,6 +1,17 @@
 import React from "react"
 import { createRoot } from "react-dom/client"
 import App from "./App"
+
+/**
+ * [ASSET IMPORTS]
+ * 
+ * Vite allows you to import CSS directly into your JS files. 
+ * During the build process, Vite extracts these and bundles them into 
+ * your production assets.
+ * 
+ * For Java Developers:
+ * - This is like adding a stylesheet to your HTML's <head> automatically.
+ */
 import "./styles.css"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
@@ -23,10 +34,20 @@ import { TooltipProvider } from "@/components/ui/tooltip"
  *   Think of it like running your Java app with `-Xlint` or in a "Debug" mode 
  *   that catches common mistakes early.
  * 
+ * - `<TooltipProvider>`: This is a "Context Provider". In Java terms, imagine this 
+ *   as a global singleton or an Injector (like in Guice or Spring) that makes 
+ *   certain functionality (tooltips) available to any sub-component without 
+ *   passing it manually through Every. Single. Level.
+ * 
  * TypeScript Syntax Detail:
  * - The `!` in `getElementById("root")!` is the "Non-null assertion operator".
  *   It tells the TypeScript compiler: "I am 100% sure this element exists in the HTML, 
  *   so don't worry about it being null." It's like a forced cast in Java.
+ * 
+ * 🚫 Antipattern: Heavy Logic in main.tsx
+ *    Do not put business logic or fetch calls here. Just like your Java `main` 
+ *    method should only bootstrap the `SpringApplication.run`, this file 
+ *    should only bootstrap the React root.
  */
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

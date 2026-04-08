@@ -71,7 +71,7 @@ Additional notes:
   - frontend: from `web/`, run `pnpm install` then `pnpm dev`
 - The Vite dev server proxies `/api` to `http://localhost:8080`.
 - Production packaging is driven by `./mvnw clean package`.
-- The Maven build currently pins and installs Node.js `v22.22.1` and pnpm `10.32.1` through `frontend-maven-plugin`.
+- The Maven build currently pins and installs Node.js `v22.22.2` and pnpm `10.33.0` through `frontend-maven-plugin`.
 - The Maven build currently runs:
   - `pnpm install`
   - `pnpm build`

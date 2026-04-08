@@ -152,6 +152,22 @@
     --sidebar-ring: oklch(0.556 0 0);
   }
 
+  /**
+   * [TAILWIND DIRECTIVES] @apply
+   * 
+   * @apply allows you to "inline" Tailwind utility classes into traditional 
+   * CSS rules.
+   * 
+   * For Java Developers:
+   * - Think of this as "Aliasing" or "Composition". Instead of repeating 
+   *   the same set of classes on every <body> tag in your app, you define 
+   *   it once here.
+   * 
+   * - Difference from Java Inheritance: 
+   *   In Java, `Child extends Parent` inherits all properties. In CSS, 
+   *   we don't "extend" classes. We either apply multiple classes to one 
+   *   element or use `@apply` to compose utility classes into a new rule.
+   */
   * {
     @apply border-border;
   }
